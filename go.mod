@@ -5,18 +5,16 @@ go 1.21.1
 require (
 	entgo.io/ent v0.12.4
 	github.com/gofiber/fiber/v2 v2.49.2
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/lib/pq v1.10.9
 )
 
 require (
 	ariga.io/atlas v0.14.1-0.20230918065911-83ad451a4935 // indirect
-	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
-	github.com/gofiber/contrib/jwt v1.0.7 // indirect
-	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
