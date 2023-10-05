@@ -1,14 +1,14 @@
 package routers
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"settlesphere/config"
 	"settlesphere/handlers"
 )
 
-func SetRoutes(app *fiber.App) {
-	api := app.Group("/api/v1/")
+func SetRoutes(app *config.Application) {
+	api := app.FiberApp.Group("/api/v1/")
 
 	api.Get("/status", handlers.Status)
-	//auth := api.Group("/auth")
-	//auth.Post("/login")
+	auth := api.Group("/auth")
+	auth.Post("/login", handlers.Login(app))
 }
