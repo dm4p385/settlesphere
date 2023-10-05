@@ -40,6 +40,11 @@ func Login(app *config.Application) fiber.Handler {
 				})
 			}
 		}
+		if user.PubKey != req.PubKey {
+			return c.Status(401).JSON(fiber.Map{
+				"message": "wrong pubKey for this user",
+			})
+		}
 		// claims
 		claims := jwt.MapClaims{
 			"user":  user.Username,
