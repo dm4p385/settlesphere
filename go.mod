@@ -5,6 +5,7 @@ go 1.21.1
 require (
 	entgo.io/ent v0.12.4
 	github.com/gofiber/fiber/v2 v2.49.2
+	github.com/lib/pq v1.10.9
 )
 
 require (
