@@ -6,9 +6,10 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"settlesphere/ent"
+	"settlesphere/ent/migrate"
 )
 
-func SetUpEnt() {
+func SetUpEnt() *ent.Client {
 	dbHost := "localhost"
 	dbPort := "5431"
 	dbName := "settlesphere-db"
@@ -19,9 +20,9 @@ func SetUpEnt() {
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
-	defer entClient.Close()
 	// Run the auto migration tool.
-	if err := entClient.Schema.Create(context.Background()); err != nil {
+	if err := entClient.Schema.Create(context.Background(), migrate.WithDropColumn(true), migrate.WithDropIndex(true)); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
+	return entClient
 }
