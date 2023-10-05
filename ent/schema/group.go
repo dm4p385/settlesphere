@@ -1,6 +1,10 @@
 package schema
 
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+)
 
 // Group holds the schema definition for the Group entity.
 type Group struct {
@@ -9,10 +13,15 @@ type Group struct {
 
 // Fields of the Group.
 func (Group) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.String("name"),
+	}
 }
 
 // Edges of the Group.
 func (Group) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("users", User.Type),
+		edge.To("transactions", Transaction.Type),
+	}
 }

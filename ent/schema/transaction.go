@@ -1,6 +1,10 @@
 package schema
 
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+)
 
 // Transaction holds the schema definition for the Transaction entity.
 type Transaction struct {
@@ -9,10 +13,19 @@ type Transaction struct {
 
 // Fields of the Transaction.
 func (Transaction) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.Int("amount").Positive(),
+		field.String("note").Optional(),
+	}
 }
 
 // Edges of the Transaction.
 func (Transaction) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("belongs_to", Group.Type).
+			Ref("transactions"),
+		edge.From("source", User.Type).
+			Ref("lent"),
+		edge.To("destination", User.Type),
+	}
 }

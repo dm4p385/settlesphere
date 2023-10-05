@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"time"
 )
 
 // User holds the schema definition for the User entity.
@@ -16,12 +16,17 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("username").Unique(),
 		field.String("email").Unique(),
-		field.String("password").Sensitive(),
-		field.Time("created").Default(time.Now),
+		field.String("pubKey").Sensitive(),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("member_of", Group.Type).
+			Ref("users"),
+		edge.To("lent", Transaction.Type),
+		edge.From("owed", Transaction.Type).
+			Ref("destination"),
+	}
 }
