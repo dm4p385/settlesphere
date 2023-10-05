@@ -2,12 +2,20 @@ package db
 
 import (
 	"context"
+	"fmt"
+	_ "github.com/lib/pq"
 	"log"
 	"settlesphere/ent"
 )
 
 func SetUpEnt() {
-	entClient, err := ent.Open("postgres", "host=settlesphere-db port=5432 dbname=settlesphere-db password=postgres")
+	dbHost := "localhost"
+	dbPort := "5431"
+	dbName := "settlesphere-db"
+	dbUser := "postgres"
+	dbPass := "postgres"
+	connString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable", dbHost, dbPort, dbName, dbUser, dbPass)
+	entClient, err := ent.Open("postgres", connString)
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
