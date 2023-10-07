@@ -6,116 +6,19 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"settlesphere/ent/group"
-	"settlesphere/services"
-
 	"settlesphere/config"
+	"settlesphere/ent/group"
+	"settlesphere/ent/user"
+	"settlesphere/services"
 )
 
-func ListGroups(app *config.Application) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		ctx := context.Background()
-		userOps := services.NewUserOps(ctx, app)
-		token := c.Locals("user").(*jwt.Token)
-		userObj, err := userOps.GetUserByJwt(token)
-		if err != nil {
-			log.Errorf(err.Error())
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "user not found",
-				"error":   err.Error(),
-			})
-		}
-		type groupsRes struct {
-			Name string `json:"name"`
-			Code string `json:"code"`
-		}
+//func ListTxns(app *config.Application) fiber.Handler {
+//	return func(c *fiber.Ctx) error {
+//
+//	}
+//}
 
-		// TODO: fix this response
-		groups, err := userObj.QueryMemberOf().Select(group.FieldName).Select(group.FieldCode).All(ctx)
-		if err != nil {
-			log.Errorf(err.Error())
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "something went wrong",
-				"error":   err.Error(),
-			})
-		}
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "fetched groups",
-			"groups":  groups,
-		})
-	}
-}
-
-func JoinGroup(app *config.Application) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		groupCodeString := c.Params("code")
-		groupCode, err := uuid.Parse(groupCodeString)
-		if err != nil {
-			log.Errorf(err.Error())
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "invalid group code",
-				"error":   err.Error(),
-			})
-		}
-		ctx := context.Background()
-		group, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
-		if err != nil {
-			log.Errorf(err.Error())
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "group not found",
-				"error":   err.Error(),
-			})
-		}
-		userOps := services.NewUserOps(ctx, app)
-		token := c.Locals("user").(*jwt.Token)
-		userObj, err := userOps.GetUserByJwt(token)
-		groupOps := services.NewGroupOps(ctx, app)
-		groupOps.AddUserToGroup(group, userObj)
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "joined group",
-		})
-	}
-}
-
-func CreateGroup(app *config.Application) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		req := struct {
-			Name string `json:"name"`
-		}{}
-		if err := c.BodyParser(&req); err != nil {
-			log.Errorf(err.Error())
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "the request is not in the correct format",
-				"error":   err,
-			})
-		}
-		ctx := context.Background()
-		group, err := app.EntClient.Group.Create().
-			SetName(req.Name).
-			Save(ctx)
-		if err != nil {
-			log.Errorf(err.Error())
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "something went wrong",
-				"error":   err.Error(),
-			})
-		}
-		userOps := services.NewUserOps(ctx, app)
-		token := c.Locals("user").(*jwt.Token)
-		userObj, err := userOps.GetUserByJwt(token)
-		groupOps := services.NewGroupOps(ctx, app)
-		groupOps.AddUserToGroup(group, userObj)
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "group created",
-			"group": fiber.Map{
-				"name": group.Name,
-				"code": group.Code,
-			},
-		})
-	}
-}
-
-func GetUsers(app *config.Application) fiber.Handler {
+func GroupUserTxns(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		ctx := context.Background()
 		userOps := services.NewUserOps(ctx, app)
@@ -150,7 +53,7 @@ func GetUsers(app *config.Application) fiber.Handler {
 				"message": "user does not belong to this group",
 			})
 		}
-		users, err := groupObj.QueryUsers().All(ctx)
+		txn, err := userOps.GetUserTxns(userObj, groupObj)
 		if err != nil {
 			log.Errorf(err.Error())
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -159,8 +62,89 @@ func GetUsers(app *config.Application) fiber.Handler {
 			})
 		}
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "fetched users",
-			"users":   users,
+			"message": "user transactions",
+			"txns":    txn,
+		})
+	}
+}
+
+func AddTransaction(app *config.Application) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		req := struct {
+			Lender   int `json:"lender"`
+			Receiver int `json:"receiver"`
+			Amount   int `json:"amount"`
+		}{}
+		if err := c.BodyParser(&req); err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "the request is not in the correct format",
+				"error":   err.Error(),
+			})
+		}
+		ctx := context.Background()
+		userOps := services.NewUserOps(ctx, app)
+		token := c.Locals("user").(*jwt.Token)
+		userObj, err := userOps.GetUserByJwt(token)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "user not found",
+				"error":   err.Error(),
+			})
+		}
+		groupCodeString := c.Params("code")
+		groupCode, err := uuid.Parse(groupCodeString)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "invalid group code",
+				"error":   err.Error(),
+			})
+		}
+		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "group not found",
+				"error":   err.Error(),
+			})
+		}
+		if isMember, _ := userObj.QueryMemberOf().Where(group.IDEQ(groupObj.ID)).Exist(ctx); !isMember {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"message": "user does not belong to this group",
+			})
+		}
+		lender, err := app.EntClient.User.Query().Where(user.IDEQ(req.Lender)).Only(ctx)
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "lender does not exist",
+				"error":   err.Error(),
+			})
+		}
+		receiver, err := app.EntClient.User.Query().Where(user.IDEQ(req.Receiver)).Only(ctx)
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "receiver does not exist",
+				"error":   err.Error(),
+			})
+		}
+		if req.Amount <= 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "amount cannot be negative or zero",
+			})
+		}
+		txnOps := services.NewTxnOps(ctx, app)
+		txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, req.Amount)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong",
+				"error":   err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message": "transaction created successfully",
+			"txn":     txn,
 		})
 	}
 }

@@ -19,10 +19,14 @@ func NewGroupOps(ctx context.Context, app *config.Application) *GroupOps {
 }
 
 func (r *GroupOps) AddUserToGroup(group *ent.Group, user *ent.User) error {
-	//r.app.EntClient.User.
 	_, err := group.Update().AddUsers(user).Save(r.ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+//func (r *GroupOps) GetAllGroupTxns(group *ent.Group) ([]ent.Transaction, error) {
+//	txns, err := group.QueryTransactions().Select().All(r.ctx)
+//	if err:=
+//}
