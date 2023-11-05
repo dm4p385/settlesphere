@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"time"
 )
 
 // Group holds the schema definition for the Group entity.
@@ -18,6 +19,9 @@ func (Group) Fields() []ent.Field {
 		field.String("name"),
 		field.UUID("code", uuid.UUID{}).
 			Default(uuid.New),
+		field.String("created_by"),
+		field.Time("created_at").
+			Default(time.Now),
 	}
 }
 

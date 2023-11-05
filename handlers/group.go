@@ -31,7 +31,7 @@ func ListGroups(app *config.Application) fiber.Handler {
 		}
 
 		// TODO: fix this response
-		groups, err := userObj.QueryMemberOf().Select(group.FieldName).Select(group.FieldCode).All(ctx)
+		groups, err := userObj.QueryMemberOf().Select(group.FieldName).Select(group.FieldCode).Select(group.FieldCreatedBy).All(ctx)
 		if err != nil {
 			log.Errorf(err.Error())
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -90,8 +90,12 @@ func CreateGroup(app *config.Application) fiber.Handler {
 			})
 		}
 		ctx := context.Background()
+		userOps := services.NewUserOps(ctx, app)
+		token := c.Locals("user").(*jwt.Token)
+		userObj, err := userOps.GetUserByJwt(token)
 		group, err := app.EntClient.Group.Create().
 			SetName(req.Name).
+			SetCreatedBy(userObj.Username).
 			Save(ctx)
 		if err != nil {
 			log.Errorf(err.Error())
@@ -100,9 +104,6 @@ func CreateGroup(app *config.Application) fiber.Handler {
 				"error":   err.Error(),
 			})
 		}
-		userOps := services.NewUserOps(ctx, app)
-		token := c.Locals("user").(*jwt.Token)
-		userObj, err := userOps.GetUserByJwt(token)
 		groupOps := services.NewGroupOps(ctx, app)
 		groupOps.AddUserToGroup(group, userObj)
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
