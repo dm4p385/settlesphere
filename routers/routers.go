@@ -33,5 +33,5 @@ func SetRoutes(app *config.Application) {
 	txn.Get("/group/:code", handlers.GroupUserTxns(app))
 	txn.Post("/group/:code", handlers.AddTransaction(app))
 	txn.Get("/group/:code/history", handlers.TxnHistory(app))
-	//txn.Get("/group/:code/settle", handlers.)
+	txn.Get("/group/:code/settle/:id", handlers.SettleTxn(app))
 }

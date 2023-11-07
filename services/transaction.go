@@ -47,17 +47,6 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			return nil, err
 		}
 	}
-	//existingLentTxn, err := r.app.EntClient.Transaction.Query().
-	//	Where(
-	//		transaction.And(
-	//			transaction.HasSourceWith(user2.IDEQ(sourceUser.ID)),
-	//			transaction.HasDestinationWith(user2.IDEQ(destUser.ID)),
-	//		),
-	//	).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
-	//if err != nil {
-	//	log.Error(err)
-	//	return nil, err
-	//}
 	if temp := r.app.EntClient.Transaction.Query().
 		Where(
 			transaction.And(
@@ -139,6 +128,16 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 		}
 		return txn, nil
 	} else if netAmount == 0 {
+		_, err = r.app.EntClient.TxnHistory.Create().
+			SetAmount(amount).
+			SetSource(destUser).
+			SetDestination(sourceUser).
+			SetBelongsTo(groupObj).
+			SetSettled(true).
+			Save(r.ctx)
+		if err != nil {
+			return nil, err
+		}
 		return nil, nil
 	}
 	return nil, nil

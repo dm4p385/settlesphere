@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/golang-jwt/jwt/v5"
 	"settlesphere/config"
 	"settlesphere/ent"
@@ -60,4 +61,89 @@ func (r *UserOps) GetUserTxns(user *ent.User, groupObj *ent.Group) (txn, error) 
 		Receives: lentTxns,
 	}
 	return txn, nil
+}
+
+// SettleTxn : Its redundant, this functionality should be incorporated in Generate Transaction only
+func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *ent.Group) (*ent.TxnHistory, error) {
+	existingLentTxn := 0
+	existingOwedTxn := 0
+	var err error
+	if temp := r.app.EntClient.Transaction.Query().
+		Where(
+			transaction.And(
+				transaction.HasSourceWith(user2.IDEQ(settler.ID)),
+				transaction.HasDestinationWith(user2.IDEQ(targetUser.ID)),
+			),
+			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+		).ExistX(r.ctx); temp {
+		existingLentTxn, err = r.app.EntClient.Transaction.Query().
+			Where(
+				transaction.And(
+					transaction.HasSourceWith(user2.IDEQ(settler.ID)),
+					transaction.HasDestinationWith(user2.IDEQ(targetUser.ID)),
+				),
+				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
+		if err != nil {
+			log.Error(err)
+			return nil, err
+		}
+	}
+	if temp := r.app.EntClient.Transaction.Query().
+		Where(
+			transaction.And(
+				transaction.HasDestinationWith(user2.IDEQ(settler.ID)),
+				transaction.HasSourceWith(user2.IDEQ(targetUser.ID)),
+			),
+			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+		).ExistX(r.ctx); temp {
+		existingOwedTxn, err = r.app.EntClient.Transaction.Query().
+			Where(
+				transaction.And(
+					transaction.HasDestinationWith(user2.IDEQ(settler.ID)),
+					transaction.HasSourceWith(user2.IDEQ(targetUser.ID)),
+				),
+				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err =
+		r.app.EntClient.Transaction.Delete().
+			Where(
+				transaction.Or(
+					transaction.And(
+						transaction.HasSourceWith(user2.IDEQ(settler.ID)),
+						transaction.HasDestinationWith(user2.IDEQ(targetUser.ID)),
+					),
+					transaction.And(
+						transaction.HasDestinationWith(user2.IDEQ(settler.ID)),
+						transaction.HasSourceWith(user2.IDEQ(targetUser.ID)),
+					),
+				),
+				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+			).Exec(r.ctx)
+	if err != nil {
+		return nil, err
+	}
+	netAmount := existingLentTxn - existingOwedTxn
+	if netAmount < 0 {
+		netAmount = 0 - netAmount
+	}
+	if netAmount == 0 {
+		err = errors.New("user does not have any outstanding settlements")
+		return nil, err
+	}
+	txnHistory, err := r.app.EntClient.TxnHistory.Create().
+		SetAmount(netAmount).
+		SetSource(targetUser).
+		SetDestination(settler).
+		SetBelongsTo(groupObj).
+		SetSettled(true).
+		Save(r.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return txnHistory, nil
 }

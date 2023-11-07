@@ -10,6 +10,7 @@ import (
 	"settlesphere/ent/group"
 	"settlesphere/ent/user"
 	"settlesphere/services"
+	"strconv"
 )
 
 //func ListTxns(app *config.Application) fiber.Handler {
@@ -193,7 +194,6 @@ func TxnHistory(app *config.Application) fiber.Handler {
 				"error":   err.Error(),
 			})
 		}
-		//log.Info(txnHistory)
 		type txnHistoryRes struct {
 			Note       string `json:"note"`
 			ReceiverId int    `json:"receiverId"`
@@ -212,10 +212,68 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			}
 			txnHistoryArr = append(txnHistoryArr, temp)
 		}
-		log.Debug(txnHistoryArr)
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message":     "transaction history",
 			"txn_history": txnHistoryArr,
+		})
+	}
+}
+
+func SettleTxn(app *config.Application) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := context.Background()
+		userOps := services.NewUserOps(ctx, app)
+		token := c.Locals("user").(*jwt.Token)
+		userObj, err := userOps.GetUserByJwt(token)
+		groupCodeString := c.Params("code")
+		groupCode, err := uuid.Parse(groupCodeString)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "invalid group code",
+				"error":   err.Error(),
+			})
+		}
+		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "group not found",
+				"error":   err.Error(),
+			})
+		}
+		targetUserId, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "failed to parse user ID",
+				"error":   err.Error(),
+			})
+		}
+		targetUserObj, err := app.EntClient.User.Query().Where(user.IDEQ(targetUserId)).Only(ctx)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "failed to find the user",
+				"error":   err.Error(),
+			})
+		}
+		if (!userObj.QueryMemberOf().Where(group.IDEQ(groupObj.ID)).ExistX(ctx)) && (!targetUserObj.QueryMemberOf().Where(group.ID(groupObj.ID)).ExistX(ctx)) {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"message": "user does not belong to this group",
+			})
+		}
+		txn, err := userOps.SettleTxn(userObj, targetUserObj, groupObj)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "failed to settle transaction",
+				"error":   err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message":     "outstanding transaction successfully settled",
+			"txn_history": txn,
 		})
 	}
 }
