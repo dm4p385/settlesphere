@@ -26,6 +26,14 @@ func (r *GroupOps) AddUserToGroup(group *ent.Group, user *ent.User) error {
 	return nil
 }
 
+func (r *GroupOps) GetTxnHistoryOfGroup(group *ent.Group) ([]*ent.TxnHistory, error) {
+	txnHistory, err := group.QueryTxnHistory().All(r.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return txnHistory, nil
+}
+
 //func (r *GroupOps) GetAllGroupTxns(group *ent.Group) ([]ent.Transaction, error) {
 //	txns, err := group.QueryTransactions().Select().All(r.ctx)
 //	if err:=

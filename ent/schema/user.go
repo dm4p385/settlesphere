@@ -26,7 +26,10 @@ func (User) Edges() []ent.Edge {
 		edge.From("member_of", Group.Type).
 			Ref("users"),
 		edge.To("lent", Transaction.Type),
+		edge.To("lent_history", TxnHistory.Type),
 		edge.From("owed", Transaction.Type).
+			Ref("destination"),
+		edge.From("owed_history", TxnHistory.Type).
 			Ref("destination"),
 	}
 }

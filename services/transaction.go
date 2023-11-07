@@ -108,6 +108,15 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 		if err != nil {
 			return nil, err
 		}
+		_, err = r.app.EntClient.TxnHistory.Create().
+			SetAmount(amount).
+			SetSource(destUser).
+			SetDestination(sourceUser).
+			SetBelongsTo(groupObj).
+			Save(r.ctx)
+		if err != nil {
+			return nil, err
+		}
 		return txn, nil
 	} else if netAmount < 0 {
 		txn, err := r.app.EntClient.Transaction.Create().
@@ -115,6 +124,15 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			AddSource(destUser).
 			AddDestination(sourceUser).
 			AddBelongsTo(groupObj).
+			Save(r.ctx)
+		if err != nil {
+			return nil, err
+		}
+		_, err = r.app.EntClient.TxnHistory.Create().
+			SetAmount(amount).
+			SetSource(destUser).
+			SetDestination(sourceUser).
+			SetBelongsTo(groupObj).
 			Save(r.ctx)
 		if err != nil {
 			return nil, err
