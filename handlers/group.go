@@ -48,8 +48,17 @@ func ListGroups(app *config.Application) fiber.Handler {
 
 func JoinGroup(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		groupCodeString := c.Params("code")
-		groupCode, err := uuid.Parse(groupCodeString)
+		req := struct {
+			GroupCodeString string `json:"group_code"`
+		}{}
+		if err := c.BodyParser(&req); err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "the request is not in the correct format",
+				"error":   err,
+			})
+		}
+		groupCode, err := uuid.Parse(req.GroupCodeString)
 		if err != nil {
 			log.Errorf(err.Error())
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

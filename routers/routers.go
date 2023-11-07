@@ -22,7 +22,7 @@ func SetRoutes(app *config.Application) {
 	group := api.Group("/groups")
 	group.Use(jwtMiddleware)
 	group.Get("/", handlers.ListGroups(app))
-	group.Get("/join/:code", handlers.JoinGroup(app))
+	group.Post("/join", handlers.JoinGroup(app))
 	group.Post("/", handlers.CreateGroup(app))
 	group.Get("/members/:code", handlers.GetUsers(app))
 
