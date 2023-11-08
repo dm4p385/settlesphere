@@ -72,9 +72,10 @@ func GroupUserTxns(app *config.Application) fiber.Handler {
 func AddTransaction(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		req := struct {
-			Lender   int `json:"lender"`
-			Receiver int `json:"receiver"`
-			Amount   int `json:"amount"`
+			Lender   int    `json:"lender"`
+			Receiver int    `json:"receiver"`
+			Amount   int    `json:"amount"`
+			Note     string `json:"note"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
 			log.Errorf(err.Error())
@@ -136,7 +137,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 			})
 		}
 		txnOps := services.NewTxnOps(ctx, app)
-		txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, req.Amount)
+		txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, req.Amount, req.Note)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "something went wrong",

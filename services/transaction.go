@@ -22,7 +22,7 @@ func NewTxnOps(ctx context.Context, app *config.Application) *TxnOps {
 	}
 }
 
-func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount int) (*ent.Transaction, error) {
+func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount int, note string) (*ent.Transaction, error) {
 	existingLentTxn := 0
 	existingOwedTxn := 0
 	var err error
@@ -93,6 +93,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			AddSource(sourceUser).
 			AddDestination(destUser).
 			AddBelongsTo(groupObj).
+			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
 			return nil, err
@@ -102,6 +103,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
+			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
 			return nil, err
@@ -113,6 +115,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			AddSource(destUser).
 			AddDestination(sourceUser).
 			AddBelongsTo(groupObj).
+			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
 			return nil, err
@@ -122,6 +125,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
+			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
 			return nil, err
@@ -133,6 +137,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
+			SetNote(note).
 			SetSettled(true).
 			Save(r.ctx)
 		if err != nil {

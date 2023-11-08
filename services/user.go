@@ -141,6 +141,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 		SetDestination(settler).
 		SetBelongsTo(groupObj).
 		SetSettled(true).
+		SetNote("Settled").
 		Save(r.ctx)
 	if err != nil {
 		return nil, err
