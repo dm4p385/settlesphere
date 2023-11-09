@@ -90,9 +90,9 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 	if netAmount > 0 {
 		txn, err := r.app.EntClient.Transaction.Create().
 			SetAmount(netAmount).
-			AddSource(sourceUser).
-			AddDestination(destUser).
-			AddBelongsTo(groupObj).
+			SetSource(sourceUser).
+			SetDestination(destUser).
+			SetBelongsTo(groupObj).
 			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
@@ -112,9 +112,9 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 	} else if netAmount < 0 {
 		txn, err := r.app.EntClient.Transaction.Create().
 			SetAmount(0 - netAmount).
-			AddSource(destUser).
-			AddDestination(sourceUser).
-			AddBelongsTo(groupObj).
+			SetSource(destUser).
+			SetDestination(sourceUser).
+			SetBelongsTo(groupObj).
 			SetNote(note).
 			Save(r.ctx)
 		if err != nil {

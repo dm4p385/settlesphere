@@ -23,9 +23,9 @@ func (Transaction) Fields() []ent.Field {
 func (Transaction) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("belongs_to", Group.Type).
-			Ref("transactions"),
+			Ref("transactions").Unique(),
 		edge.From("source", User.Type).
-			Ref("lent"),
-		edge.To("destination", User.Type),
+			Ref("lent").Unique(),
+		edge.To("destination", User.Type).Unique(),
 	}
 }

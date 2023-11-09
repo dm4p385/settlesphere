@@ -44,7 +44,7 @@ func (r *UserOps) GetUserTxns(user *ent.User, groupObj *ent.Group) (txn, error) 
 		Where(
 			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 			transaction.HasDestinationWith(user2.IDEQ(user.ID)),
-		).All(r.ctx)
+		).WithDestination().WithSource().All(r.ctx)
 	if err != nil {
 		return txn{}, err
 	}
@@ -52,7 +52,7 @@ func (r *UserOps) GetUserTxns(user *ent.User, groupObj *ent.Group) (txn, error) 
 		Where(
 			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 			transaction.HasSourceWith(user2.IDEQ(user.ID)),
-		).All(r.ctx)
+		).WithDestination().WithSource().All(r.ctx)
 	if err != nil {
 		return txn{}, err
 	}
