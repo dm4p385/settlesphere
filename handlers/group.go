@@ -174,3 +174,32 @@ func GetUsers(app *config.Application) fiber.Handler {
 		})
 	}
 }
+
+func GetSettledTxns(app *config.Application) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := context.Background()
+		userOps := services.NewUserOps(ctx, app)
+		token := c.Locals("user").(*jwt.Token)
+		userObj, err := userOps.GetUserByJwt(token)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "user not found",
+				"error":   err.Error(),
+			})
+		}
+		groupOps := services.NewGroupOps(ctx, app)
+		owedTxnHistory, lentTxnHistory, err := groupOps.GetSettledTxnsOfAllGroups(userObj)
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong",
+				"error":   err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"owed": owedTxnHistory,
+			"lent": lentTxnHistory,
+		})
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"settlesphere/config"
 	"settlesphere/ent"
+	"settlesphere/ent/txnhistory"
 )
 
 type GroupOps struct {
@@ -32,6 +33,18 @@ func (r *GroupOps) GetTxnHistoryOfGroup(group *ent.Group) ([]*ent.TxnHistory, er
 		return nil, err
 	}
 	return txnHistory, nil
+}
+
+func (r *GroupOps) GetSettledTxnsOfAllGroups(user *ent.User) ([]*ent.TxnHistory, []*ent.TxnHistory, error) {
+	OwedTxnHistory, err := user.QueryOwedHistory().Where(txnhistory.Settled(true)).All(r.ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	LentTxnHistory, err := user.QueryLentHistory().Where(txnhistory.Settled(true)).All(r.ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	return OwedTxnHistory, LentTxnHistory, nil
 }
 
 //func (r *GroupOps) GetAllGroupTxns(group *ent.Group) ([]ent.Transaction, error) {
