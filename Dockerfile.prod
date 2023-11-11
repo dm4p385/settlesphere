@@ -1,0 +1,16 @@
+FROM golang:1.21.1 as base
+
+FROM base as built
+
+WORKDIR /go/app/api
+COPY . .
+
+ENV CGO_ENABLED=0
+
+RUN go mod download
+RUN go mod verify
+RUN go build -o /tmp/main ./*.go
+
+FROM busybox
+COPY --from=built /tmp/main /usr/bin/main
+CMD ["./usr/bin/main"]

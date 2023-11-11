@@ -10,8 +10,8 @@ import (
 )
 
 func SetUpEnt() *ent.Client {
-	dbHost := "localhost"
-	dbPort := "5431"
+	dbHost := "settlesphere-postgres"
+	dbPort := "5432"
 	dbName := "settlesphere-db"
 	dbUser := "postgres"
 	dbPass := "postgres"
