@@ -264,7 +264,7 @@ func SettleTxn(app *config.Application) fiber.Handler {
 				"message": "user does not belong to this group",
 			})
 		}
-		txn, err := userOps.SettleTxn(userObj, targetUserObj, groupObj)
+		txn, userInfoTxn, err := userOps.SettleTxn(userObj, targetUserObj, groupObj)
 		if err != nil {
 			log.Errorf(err.Error())
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -275,6 +275,7 @@ func SettleTxn(app *config.Application) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message":     "outstanding transaction successfully settled",
 			"txn_history": txn,
+			"user_info":   userInfoTxn,
 		})
 	}
 }

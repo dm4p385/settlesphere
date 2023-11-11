@@ -39,6 +39,13 @@ type txn struct {
 	Receives []*ent.Transaction `json:"receives"`
 }
 
+type userInfoTxn struct {
+	SourceUserId      int    `json:"source_user_id"`
+	SourcePubKey      string `json:"source_pub_key"`
+	DestinationUserId int    `json:"destination_user_id"`
+	DestinationPubKey string `json:"destination_pub_key"`
+}
+
 func (r *UserOps) GetUserTxns(user *ent.User, groupObj *ent.Group) (txn, error) {
 	lentTxns, err := r.app.EntClient.Transaction.Query().
 		Where(
@@ -64,7 +71,7 @@ func (r *UserOps) GetUserTxns(user *ent.User, groupObj *ent.Group) (txn, error) 
 }
 
 // SettleTxn : Its redundant, this functionality should be incorporated in Generate Transaction only
-func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *ent.Group) (*ent.TxnHistory, error) {
+func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *ent.Group) (*ent.TxnHistory, *userInfoTxn, error) {
 	existingLentTxn := 0
 	existingOwedTxn := 0
 	var err error
@@ -86,7 +93,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
 		if err != nil {
 			log.Error(err)
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	if temp := r.app.EntClient.Transaction.Query().
@@ -106,7 +113,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	_, err =
@@ -125,15 +132,34 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 			).Exec(r.ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	netAmount := existingLentTxn - existingOwedTxn
 	if netAmount < 0 {
 		netAmount = 0 - netAmount
+		txnHistory, err := r.app.EntClient.TxnHistory.Create().
+			SetAmount(netAmount).
+			SetSource(settler).
+			SetDestination(targetUser).
+			SetBelongsTo(groupObj).
+			SetSettled(true).
+			SetNote("Settled").
+			Save(r.ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		usrInfoTxn := userInfoTxn{
+			SourceUserId:      settler.ID,
+			SourcePubKey:      settler.PubKey,
+			DestinationUserId: targetUser.ID,
+			DestinationPubKey: targetUser.PubKey,
+		}
+		return txnHistory, &usrInfoTxn, nil
 	}
+
 	if netAmount == 0 {
 		err = errors.New("user does not have any outstanding settlements")
-		return nil, err
+		return nil, nil, err
 	}
 	txnHistory, err := r.app.EntClient.TxnHistory.Create().
 		SetAmount(netAmount).
@@ -144,7 +170,14 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 		SetNote("Settled").
 		Save(r.ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return txnHistory, nil
+	usrInfoTxn := userInfoTxn{
+		SourceUserId:      targetUser.ID,
+		SourcePubKey:      targetUser.PubKey,
+		DestinationUserId: settler.ID,
+		DestinationPubKey: settler.PubKey,
+	}
+
+	return txnHistory, &usrInfoTxn, nil
 }
