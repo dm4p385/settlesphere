@@ -196,6 +196,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			})
 		}
 		type txnHistoryRes struct {
+			TxnId      int    `json:"id"`
 			Note       string `json:"note"`
 			ReceiverId int    `json:"receiverId"`
 			PayerId    int    `json:"payerId"`
@@ -205,6 +206,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 		var txnHistoryArr []txnHistoryRes
 		for _, txnHistory := range txnHistoryObjArr {
 			temp := txnHistoryRes{
+				TxnId:      txnHistory.ID,
 				Note:       txnHistory.Note,
 				ReceiverId: txnHistory.QueryDestination().OnlyIDX(ctx),
 				PayerId:    txnHistory.QuerySource().OnlyIDX(ctx),
