@@ -196,7 +196,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			})
 		}
 		type txnHistoryRes struct {
-			TxnId      int    `json:"id"`
+			TxnId      int    `json:id`
 			Note       string `json:"note"`
 			ReceiverId int    `json:"receiverId"`
 			PayerId    int    `json:"payerId"`
