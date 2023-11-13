@@ -7,7 +7,7 @@ import (
 )
 
 func SetRoutes(app *config.Application) {
-	api := app.FiberApp.Group("/api/v1/")
+	api := app.FiberApp.Group("/settlesphere/api/v1/")
 	jwtMiddleware := jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(app.Secret)},
 	})
