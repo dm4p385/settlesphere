@@ -144,3 +144,4 @@ dev/
 ent/*
 !ent/schema
 !ent/generate.go
+./env
