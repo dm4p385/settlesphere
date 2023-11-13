@@ -9,6 +9,7 @@ ENV CGO_ENABLED=0
 
 RUN go mod download
 RUN go mod verify
+RUN go generate ./ent
 RUN go build -o /tmp/main ./*.go
 
 FROM busybox
