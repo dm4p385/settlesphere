@@ -7,14 +7,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"settlesphere/config"
 	user2 "settlesphere/ent/user"
-	"strings"
 	"time"
 )
 
 func Login(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		req := struct {
-			Email  string `json:"email"`
+			Email  string `json:"name"`
 			PubKey string `json:"pubKey"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
@@ -24,11 +23,11 @@ func Login(app *config.Application) fiber.Handler {
 			})
 		}
 		ctx := context.Background()
-		user, err := app.EntClient.User.Query().Where(user2.EmailEQ(req.Email)).Only(ctx)
+		user, err := app.EntClient.User.Query().Where(user2.PubKey(req.PubKey)).Only(ctx)
 		if err != nil {
-			username := strings.Split(req.Email, "@")[0]
+			//username := strings.Split(req.Email, "@")[0]
 			user, err = app.EntClient.User.Create().
-				SetUsername(username).
+				SetUsername(req.Email).
 				SetEmail(req.Email).
 				SetPubKey(req.PubKey).
 				Save(ctx)
