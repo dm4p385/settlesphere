@@ -63,6 +63,7 @@ func Login(app *config.Application) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "logged in successfully",
 			"token":   t,
+			"user":    user,
 		})
 	}
 }
