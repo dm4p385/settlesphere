@@ -27,7 +27,7 @@ func NewUserOps(ctx context.Context, app *config.Application) *UserOps {
 func (r *UserOps) GetUserByJwt(token *jwt.Token) (*ent.User, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	ctx := context.Background()
-	userObj, err := r.app.EntClient.User.Query().Where(user2.UsernameEQ(claims["user"].(string))).Only(ctx)
+	userObj, err := r.app.EntClient.User.Query().Where(user2.PubKeyEQ(claims["pubkey"].(string))).Only(ctx)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}

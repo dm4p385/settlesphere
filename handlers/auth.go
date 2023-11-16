@@ -55,9 +55,10 @@ func Login(app *config.Application) fiber.Handler {
 		}
 		// claims
 		claims := jwt.MapClaims{
-			"user":  user.Username,
-			"email": user.Email,
-			"exp":   time.Now().Add(time.Hour * 72).Unix(),
+			"user":   user.Username,
+			"email":  user.Email,
+			"pubkey": user.PubKey,
+			"exp":    time.Now().Add(time.Hour * 72).Unix(),
 		}
 		// Create token
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
