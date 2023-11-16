@@ -39,6 +39,15 @@ func Login(app *config.Application) fiber.Handler {
 				})
 			}
 		}
+		_, err = user.Update().SetUsername(req.Email).SetEmail(req.Email).Save(ctx)
+		if err != nil {
+			log.Errorf("something went wrong while creating a user: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong while upadting user name",
+				"error":   err,
+			})
+		}
+
 		if user.PubKey != req.PubKey {
 			return c.Status(401).JSON(fiber.Map{
 				"message": "wrong pubKey for this user",
