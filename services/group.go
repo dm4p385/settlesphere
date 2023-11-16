@@ -36,11 +36,11 @@ func (r *GroupOps) GetTxnHistoryOfGroup(group *ent.Group) ([]*ent.TxnHistory, er
 }
 
 func (r *GroupOps) GetSettledTxnsOfAllGroups(user *ent.User) ([]*ent.TxnHistory, []*ent.TxnHistory, error) {
-	OwedTxnHistory, err := user.QueryOwedHistory().Where(txnhistory.Settled(true)).All(r.ctx)
+	OwedTxnHistory, err := user.QueryOwedHistory().Where(txnhistory.Settled(true)).WithBelongsTo().All(r.ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	LentTxnHistory, err := user.QueryLentHistory().Where(txnhistory.Settled(true)).All(r.ctx)
+	LentTxnHistory, err := user.QueryLentHistory().Where(txnhistory.Settled(true)).WithBelongsTo().All(r.ctx)
 	if err != nil {
 		return nil, nil, err
 	}
