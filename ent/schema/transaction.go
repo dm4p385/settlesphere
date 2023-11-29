@@ -14,7 +14,7 @@ type Transaction struct {
 // Fields of the Transaction.
 func (Transaction) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("amount").Positive(),
+		field.Float("amount").Positive(),
 		field.String("note").Optional(),
 	}
 }

@@ -72,10 +72,10 @@ func GroupUserTxns(app *config.Application) fiber.Handler {
 func AddTransaction(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		req := struct {
-			Lender   int    `json:"lender"`
-			Receiver int    `json:"receiver"`
-			Amount   int    `json:"amount"`
-			Note     string `json:"note"`
+			Lender   int     `json:"lender"`
+			Receiver int     `json:"receiver"`
+			Amount   float64 `json:"amount"`
+			Note     string  `json:"note"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
 			log.Errorf(err.Error())
@@ -196,12 +196,12 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			})
 		}
 		type txnHistoryRes struct {
-			TxnId      int    `json:"id"`
-			Note       string `json:"note"`
-			ReceiverId int    `json:"receiverId"`
-			PayerId    int    `json:"payerId"`
-			Amount     int    `json:"amount"`
-			Settled    bool   `json:"settled"`
+			TxnId      int     `json:"id"`
+			Note       string  `json:"note"`
+			ReceiverId int     `json:"receiverId"`
+			PayerId    int     `json:"payerId"`
+			Amount     float64 `json:"amount"`
+			Settled    bool    `json:"settled"`
 		}
 		var txnHistoryArr []txnHistoryRes
 		for _, txnHistory := range txnHistoryObjArr {

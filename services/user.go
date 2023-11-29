@@ -72,8 +72,8 @@ func (r *UserOps) GetUserTxns(user *ent.User, groupObj *ent.Group) (txn, error) 
 
 // SettleTxn : Its redundant, this functionality should be incorporated in Generate Transaction only
 func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *ent.Group) (*ent.TxnHistory, *userInfoTxn, error) {
-	existingLentTxn := 0
-	existingOwedTxn := 0
+	existingLentTxn := 0.0
+	existingOwedTxn := 0.0
 	var err error
 	if temp := r.app.EntClient.Transaction.Query().
 		Where(
@@ -90,7 +90,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 					transaction.HasDestinationWith(user2.IDEQ(targetUser.ID)),
 				),
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
-			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
+			).Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
 		if err != nil {
 			log.Error(err)
 			return nil, nil, err
@@ -111,7 +111,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 					transaction.HasSourceWith(user2.IDEQ(targetUser.ID)),
 				),
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
-			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
+			).Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
 		if err != nil {
 			return nil, nil, err
 		}
