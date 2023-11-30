@@ -25,7 +25,7 @@ func InitializeApp(fiberApp *fiber.App, entClient *ent.Client) *Application {
 	app := Application{
 		Db: Db{
 			DbHost: "localhost",
-			DbPort: "5431",
+			DbPort: "5438",
 			DbName: "settlesphere-db",
 			DbUser: "postgres",
 			DbPass: "postgres",
