@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/gofiber/fiber/v2/log"
@@ -36,9 +37,19 @@ func (r *UserOps) GetUserByJwt(token *jwt.Token) (*ent.User, error) {
 	return userObj, nil
 }
 
-func (r *UserOps) VerifyUser(message string, signatureBase58 string, publicKeyBase58 string) bool {
-	signature := base58.Decode(signatureBase58)
-	rawPublicKey := base58.Decode(publicKeyBase58)
+func (r *UserOps) VerifyUser(message string, signatureBase64 string, publicKeyBase64 string) bool {
+	signature, err := base64.StdEncoding.DecodeString(signatureBase64)
+	if err != nil {
+		log.Errorf("error occurred while decoding signature: %v", err)
+		return false
+	}
+	//rawPublicKey, err := base64.StdEncoding.DecodeString(publicKeyBase64)
+	//if err != nil {
+	//	log.Errorf("error occurred while decoding pubKey: %v", err)
+	//	return false
+	//}
+	//signature := base58.Decode(signatureBase64)
+	rawPublicKey := base58.Decode(publicKeyBase64)
 	log.Debug(signature)
 	log.Debug(rawPublicKey)
 	// Convert the message to bytes

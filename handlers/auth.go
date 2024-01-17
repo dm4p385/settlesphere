@@ -26,9 +26,9 @@ func Login(app *config.Application) fiber.Handler {
 		}
 		ctx := context.Background()
 		userOps := services.NewUserOps(ctx, app)
-		log.Debug("email: %v", req.Email)
-		log.Debug("pubkey: %v", req.PubKey)
-		log.Debug("signature: %v", req.Signature)
+		log.Debug(req.Email)
+		log.Debug(req.PubKey)
+		log.Debug(req.Signature)
 		verified := userOps.VerifyUser("settlesphere", req.Signature, req.PubKey)
 		if !verified {
 			log.Errorf("could not verify user signature")
