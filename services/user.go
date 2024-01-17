@@ -38,13 +38,14 @@ func (r *UserOps) GetUserByJwt(token *jwt.Token) (*ent.User, error) {
 
 func (r *UserOps) VerifyUser(message string, signatureBase58 string, publicKeyBase58 string) bool {
 	signature := base58.Decode(signatureBase58)
-	publicKey := base58.Decode(publicKeyBase58)
+	rawPublicKey := base58.Decode(publicKeyBase58)
 	log.Debug(signature)
-	log.Debug(publicKey)
+	log.Debug(rawPublicKey)
 	// Convert the message to bytes
 	messageBytes := []byte(message)
 	log.Debug(message)
 	log.Debug(messageBytes)
+	var publicKey ed25519.PublicKey = rawPublicKey
 	// Perform signature verification
 	verified := ed25519.Verify(publicKey, messageBytes, signature)
 	if verified {
