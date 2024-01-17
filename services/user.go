@@ -3,8 +3,10 @@ package services
 import (
 	"context"
 	"errors"
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/ed25519"
 	"settlesphere/config"
 	"settlesphere/ent"
 	"settlesphere/ent/group"
@@ -32,6 +34,26 @@ func (r *UserOps) GetUserByJwt(token *jwt.Token) (*ent.User, error) {
 		return nil, errors.New("user not found")
 	}
 	return userObj, nil
+}
+
+func (r *UserOps) VerifyUser(message string, signatureBase58 string, publicKeyBase58 string) bool {
+	signature := base58.Decode(signatureBase58)
+	publicKey := base58.Decode(publicKeyBase58)
+	log.Debug(signature)
+	log.Debug(publicKey)
+	// Convert the message to bytes
+	messageBytes := []byte(message)
+	log.Debug(message)
+	log.Debug(messageBytes)
+	// Perform signature verification
+	verified := ed25519.Verify(publicKey, messageBytes, signature)
+	if verified {
+		log.Debug("Signature is valid.")
+		return true
+	} else {
+		log.Debug("Signature is not valid.")
+		return false
+	}
 }
 
 type txn struct {

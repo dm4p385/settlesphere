@@ -7,14 +7,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"settlesphere/config"
 	user2 "settlesphere/ent/user"
+	"settlesphere/services"
 	"time"
 )
 
 func Login(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		req := struct {
-			Email  string `json:"name"`
-			PubKey string `json:"pubKey"`
+			Email     string `json:"name"`
+			PubKey    string `json:"pubKey"`
+			Signature string `json:"signature"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -23,6 +25,14 @@ func Login(app *config.Application) fiber.Handler {
 			})
 		}
 		ctx := context.Background()
+		userOps := services.NewUserOps(ctx, app)
+		verified := userOps.VerifyUser("settlesphere", req.Signature, req.PubKey)
+		if !verified {
+			log.Errorf("could not verify user signature")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "could not verify user signature",
+			})
+		}
 		user, err := app.EntClient.User.Query().Where(user2.PubKey(req.PubKey)).Only(ctx)
 		if err != nil {
 			//username := strings.Split(req.Email, "@")[0]
