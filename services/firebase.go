@@ -21,7 +21,7 @@ func InitFirebase() (*firebase.App, error) {
 }
 
 func InitStorageClient() (*storage.Client, error) {
-	storageClient, err := storage.NewClient(context.Background(), option.WithCredentialsFile("config/settlesphere-56478-firebase-adminsdk-pzxjh-55b078fb52.json"))
+	storageClient, err := storage.NewClient(context.Background(), option.WithCredentialsFile("usr/bin/config/settlesphere-56478-firebase-adminsdk-pzxjh-55b078fb52.json"))
 	if err != nil {
 		return nil, err
 	}
