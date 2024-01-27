@@ -3,14 +3,18 @@ module settlesphere
 go 1.21.1
 
 require (
+	cloud.google.com/go/storage v1.37.0
 	entgo.io/ent v0.12.4
+	firebase.google.com/go/v4 v4.13.0
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/gofiber/contrib/jwt v1.0.7
 	github.com/gofiber/fiber/v2 v2.49.2
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	golang.org/x/crypto v0.18.0
+	google.golang.org/api v0.159.0
 )
 
 require (
@@ -21,8 +25,6 @@ require (
 	cloud.google.com/go/firestore v1.14.0 // indirect
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/longrunning v0.5.4 // indirect
-	cloud.google.com/go/storage v1.37.0 // indirect
-	firebase.google.com/go/v4 v4.13.0 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
 	github.com/MicahParks/keyfunc/v2 v2.1.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
@@ -63,8 +65,6 @@ require (
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
-	google.golang.org/api v0.159.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/appengine/v2 v2.0.5 // indirect
 	google.golang.org/genproto v0.0.0-20240125205218-1f4bbc51befe // indirect

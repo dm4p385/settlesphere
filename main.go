@@ -2,15 +2,28 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
+	"os"
 	"settlesphere/config"
 	"settlesphere/db"
 	"settlesphere/routers"
 	"settlesphere/services"
 )
 
+//func loadEnv() error {
+//	err := godotenv.Load(".env")
+//	if err != nil {
+//		return fmt.Errorf("Error loading .env file: %v", err)
+//	}
+//	return nil
+//}
+
 func main() {
+	envType := os.Getenv("ENV_TYPE")
+	log.Debugf("environment type: %s", envType)
+
 	entClient := db.SetUpEnt()
 	defer entClient.Close()
 	fiberApp := fiber.New(fiber.Config{
@@ -30,6 +43,7 @@ func main() {
 	//}
 	firebaseStorageClient, err := services.InitStorageClient()
 	if err != nil {
+		log.Fatal(err)
 		panic(err)
 	}
 

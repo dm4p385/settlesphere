@@ -3,25 +3,30 @@ package services
 import (
 	"cloud.google.com/go/storage"
 	"context"
-	firebase "firebase.google.com/go/v4"
 	"github.com/gofiber/fiber/v2/log"
 	"google.golang.org/api/option"
 	"io"
 	"mime/multipart"
+	"os"
 	"time"
 )
 
-func InitFirebase() (*firebase.App, error) {
-	opt := option.WithCredentialsFile("config/settlesphere-56478-firebase-adminsdk-pzxjh-55b078fb52.json")
-	app, err := firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
-		return nil, err
-	}
-	return app, nil
-}
+//func InitFirebase() (*firebase.App, error) {
+//	opt := option.WithCredentialsFile("config/firebase-service.json")
+//	app, err := firebase.NewApp(context.Background(), nil, opt)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return app, nil
+//}
 
 func InitStorageClient() (*storage.Client, error) {
-	storageClient, err := storage.NewClient(context.Background(), option.WithCredentialsFile("usr/bin/config/settlesphere-56478-firebase-adminsdk-pzxjh-55b078fb52.json"))
+	envType := os.Getenv("ENV_TYPE")
+	serviceFilePath := "config/firebase-service.json"
+	if envType == "prod" {
+		serviceFilePath = "/usr/bin/config/firebase-service.json"
+	}
+	storageClient, err := storage.NewClient(context.Background(), option.WithCredentialsFile(serviceFilePath))
 	if err != nil {
 		return nil, err
 	}
