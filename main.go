@@ -7,6 +7,7 @@ import (
 	"settlesphere/config"
 	"settlesphere/db"
 	"settlesphere/routers"
+	"settlesphere/services"
 )
 
 func main() {
@@ -22,7 +23,17 @@ func main() {
 		AllowCredentials: true,
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 	}))
-	app := config.InitializeApp(fiberApp, entClient)
+
+	//firebaseApp, err := services.InitFirebase()
+	//if err != nil {
+	//	panic(err)
+	//}
+	firebaseStorageClient, err := services.InitStorageClient()
+	if err != nil {
+		panic(err)
+	}
+
+	app := config.InitializeApp(fiberApp, entClient, firebaseStorageClient)
 	fiberApp.Use(recover2.New())
 	// setup routes
 	routers.SetRoutes(app)

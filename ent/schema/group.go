@@ -22,6 +22,7 @@ func (Group) Fields() []ent.Field {
 		field.String("created_by"),
 		field.Time("created_at").
 			Default(time.Now),
+		field.String("image").Default(""),
 	}
 }
 

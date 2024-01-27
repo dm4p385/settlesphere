@@ -98,6 +98,38 @@ func CreateGroup(app *config.Application) fiber.Handler {
 				"error":   err,
 			})
 		}
+		form, err := c.MultipartForm()
+		if err != nil {
+			log.Errorf(err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "could not parse image",
+				"error":   err,
+			})
+		}
+		log.Debug(form.File["image"])
+		file := form.File["image"][0]
+		log.Debugf(file.Filename, file.Size, file.Header["Content-Type"][0])
+		url, err := services.UploadToFirebase(app.FirebaseStorageClient, file)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "failed to upload image to firebase",
+				"error":   err,
+			})
+		}
+		//for _, file := range form.File["image"] {
+		//	log.Debugf(file.Filename, file.Size, file.Header["Content-Type"][0])
+		//	url, err := services.UploadToFirebase(app.FirebaseStorageClient, file)
+		//	if err != nil {
+		//		log.Error(err)
+		//		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		//			"message": "failed to upload image to firebase",
+		//			"error":   err,
+		//		})
+		//	}
+		//}
+		//imageFile := form.File["image"]
+		//log.Debug(imageFile.Filename, imageFile.Size, file.Header["Content-Type"][0])
 		ctx := context.Background()
 		userOps := services.NewUserOps(ctx, app)
 		token := c.Locals("user").(*jwt.Token)
@@ -105,6 +137,7 @@ func CreateGroup(app *config.Application) fiber.Handler {
 		group, err := app.EntClient.Group.Create().
 			SetName(req.Name).
 			SetCreatedBy(userObj.Username).
+			SetImage(url).
 			Save(ctx)
 		if err != nil {
 			log.Errorf(err.Error())
@@ -118,8 +151,9 @@ func CreateGroup(app *config.Application) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "group created",
 			"group": fiber.Map{
-				"name": group.Name,
-				"code": group.Code,
+				"name":  group.Name,
+				"code":  group.Code,
+				"image": group.Image,
 			},
 		})
 	}
