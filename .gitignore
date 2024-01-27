@@ -146,5 +146,5 @@ ent/*
 !ent/generate.go
 ./env
 .env
-./tmp/*
+./tmp/
 config/settlesphere-56478-firebase-adminsdk-pzxjh-55b078fb52.json
