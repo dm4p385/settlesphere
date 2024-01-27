@@ -17,6 +17,7 @@ func (User) Fields() []ent.Field {
 		field.String("username"),
 		field.String("email"),
 		field.String("pubKey").Unique(),
+		field.String("image").Default("https://cdn.discordapp.com/attachments/876848373720842260/1200728031451414560/7748169_1.png?ex=65c73c1f&is=65b4c71f&hm=5653d203db5ac73730d8e2149dcd4bfc7c61bc90a1a9194cc8e07da3e86848de&"),
 	}
 }
 

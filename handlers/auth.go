@@ -39,10 +39,12 @@ func Login(app *config.Application) fiber.Handler {
 		user, err := app.EntClient.User.Query().Where(user2.PubKey(req.PubKey)).Only(ctx)
 		if err != nil {
 			//username := strings.Split(req.Email, "@")[0]
+			profilePicture := userOps.GetProfilePictureUrl()
 			user, err = app.EntClient.User.Create().
 				SetUsername(req.Email).
 				SetEmail(req.Email).
 				SetPubKey(req.PubKey).
+				SetImage(profilePicture).
 				Save(ctx)
 			if err != nil {
 				log.Errorf("something went wrong while creating a user: %v", err)
