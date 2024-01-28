@@ -52,26 +52,46 @@ func (r *GroupOps) GetSettledTxnsOfAllGroups(user *ent.User) ([]*ent.TxnHistory,
 }
 
 func (r *GroupOps) GetUserNetAmountOfGroup(user *ent.User, groupObj *ent.Group) (float64, error) {
-	owedTxnsAmount, err := r.app.EntClient.Transaction.Query().
+	owedTxnsAmount := 0.0
+	lentTxnsAmount := 0.0
+	var err error
+
+	if temp := r.app.EntClient.Transaction.Query().
 		Where(
 			transaction.HasDestinationWith(user2.ID(user.ID)),
 			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 		).
-		Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
-	if err != nil {
-		log.Error(err)
-		return 0, err
+		Aggregate(ent.Sum(transaction.FieldAmount)).ExistX(r.ctx); temp {
+		owedTxnsAmount, err = r.app.EntClient.Transaction.Query().
+			Where(
+				transaction.HasDestinationWith(user2.ID(user.ID)),
+				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+			).
+			Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
+		if err != nil {
+			log.Error(err)
+			return 0, err
+		}
 	}
-	lentTxnsAmount, err := r.app.EntClient.Transaction.Query().
+
+	if temp := r.app.EntClient.Transaction.Query().
 		Where(
 			transaction.HasSourceWith(user2.ID(user.ID)),
 			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 		).
-		Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
-	if err != nil {
-		log.Error(err)
-		return 0, err
+		Aggregate(ent.Sum(transaction.FieldAmount)).ExistX(r.ctx); temp {
+		lentTxnsAmount, err = r.app.EntClient.Transaction.Query().
+			Where(
+				transaction.HasSourceWith(user2.ID(user.ID)),
+				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+			).
+			Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
+		if err != nil {
+			log.Error(err)
+			return 0, err
+		}
 	}
+
 	netAmount := lentTxnsAmount - owedTxnsAmount
 	return netAmount, nil
 }
