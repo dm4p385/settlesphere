@@ -19,7 +19,7 @@ func ListGroups(app *config.Application) fiber.Handler {
 		token := c.Locals("user").(*jwt.Token)
 		userObj, err := userOps.GetUserByJwt(token)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "user not found",
 				"error":   err.Error(),
@@ -33,7 +33,7 @@ func ListGroups(app *config.Application) fiber.Handler {
 		// TODO: fix this response
 		groups, err := userObj.QueryMemberOf().Select(group.FieldName).Select(group.FieldCode).Select(group.FieldCreatedBy).All(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "something went wrong",
 				"error":   err.Error(),
@@ -52,7 +52,7 @@ func JoinGroup(app *config.Application) fiber.Handler {
 			GroupCodeString string `json:"group_code"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "the request is not in the correct format",
 				"error":   err,
@@ -60,7 +60,7 @@ func JoinGroup(app *config.Application) fiber.Handler {
 		}
 		groupCode, err := uuid.Parse(req.GroupCodeString)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid group code",
 				"error":   err.Error(),
@@ -69,7 +69,7 @@ func JoinGroup(app *config.Application) fiber.Handler {
 		ctx := context.Background()
 		group, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"message": "group not found",
 				"error":   err.Error(),
@@ -92,7 +92,7 @@ func CreateGroup(app *config.Application) fiber.Handler {
 			Name string `json:"name"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "the request is not in the correct format",
 				"error":   err,

@@ -26,7 +26,7 @@ func GroupUserTxns(app *config.Application) fiber.Handler {
 		token := c.Locals("user").(*jwt.Token)
 		userObj, err := userOps.GetUserByJwt(token)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "user not found",
 				"error":   err.Error(),
@@ -35,7 +35,7 @@ func GroupUserTxns(app *config.Application) fiber.Handler {
 		groupCodeString := c.Params("code")
 		groupCode, err := uuid.Parse(groupCodeString)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid group code",
 				"error":   err.Error(),
@@ -43,7 +43,7 @@ func GroupUserTxns(app *config.Application) fiber.Handler {
 		}
 		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"message": "group not found",
 				"error":   err.Error(),
@@ -56,7 +56,7 @@ func GroupUserTxns(app *config.Application) fiber.Handler {
 		}
 		txn, err := userOps.GetUserTxns(userObj, groupObj)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "something went wrong",
 				"error":   err.Error(),
@@ -78,7 +78,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 			Note     string  `json:"note"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "the request is not in the correct format",
 				"error":   err.Error(),
@@ -89,7 +89,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 		token := c.Locals("user").(*jwt.Token)
 		userObj, err := userOps.GetUserByJwt(token)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "user not found",
 				"error":   err.Error(),
