@@ -98,7 +98,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 		groupCodeString := c.Params("code")
 		groupCode, err := uuid.Parse(groupCodeString)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid group code",
 				"error":   err.Error(),
@@ -106,7 +106,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 		}
 		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"message": "group not found",
 				"error":   err.Error(),
@@ -158,7 +158,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 		token := c.Locals("user").(*jwt.Token)
 		userObj, err := userOps.GetUserByJwt(token)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "user not found",
 				"error":   err.Error(),
@@ -167,7 +167,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 		groupCodeString := c.Params("code")
 		groupCode, err := uuid.Parse(groupCodeString)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid group code",
 				"error":   err.Error(),
@@ -175,7 +175,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 		}
 		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"message": "group not found",
 				"error":   err.Error(),
@@ -189,7 +189,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 		groupOps := services.NewGroupOps(ctx, app)
 		txnHistoryObjArr, err := groupOps.GetTxnHistoryOfGroup(groupObj)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "something went wrong",
 				"error":   err.Error(),
@@ -231,7 +231,7 @@ func SettleTxn(app *config.Application) fiber.Handler {
 		groupCodeString := c.Params("code")
 		groupCode, err := uuid.Parse(groupCodeString)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid group code",
 				"error":   err.Error(),
@@ -239,7 +239,7 @@ func SettleTxn(app *config.Application) fiber.Handler {
 		}
 		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"message": "group not found",
 				"error":   err.Error(),
@@ -247,7 +247,7 @@ func SettleTxn(app *config.Application) fiber.Handler {
 		}
 		targetUserId, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "failed to parse user ID",
 				"error":   err.Error(),
@@ -255,7 +255,7 @@ func SettleTxn(app *config.Application) fiber.Handler {
 		}
 		targetUserObj, err := app.EntClient.User.Query().Where(user.IDEQ(targetUserId)).Only(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"message": "failed to find the user",
 				"error":   err.Error(),
@@ -268,7 +268,7 @@ func SettleTxn(app *config.Application) fiber.Handler {
 		}
 		txn, userInfoTxn, err := userOps.SettleTxn(userObj, targetUserObj, groupObj)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "failed to settle transaction",
 				"error":   err.Error(),

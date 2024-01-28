@@ -100,7 +100,7 @@ func CreateGroup(app *config.Application) fiber.Handler {
 		}
 		form, err := c.MultipartForm()
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "could not parse image",
 				"error":   err,
@@ -140,7 +140,7 @@ func CreateGroup(app *config.Application) fiber.Handler {
 			SetImage(url).
 			Save(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "something went wrong",
 				"error":   err.Error(),
@@ -166,7 +166,7 @@ func GetUsers(app *config.Application) fiber.Handler {
 		token := c.Locals("user").(*jwt.Token)
 		userObj, err := userOps.GetUserByJwt(token)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "user not found",
 				"error":   err.Error(),
@@ -175,7 +175,7 @@ func GetUsers(app *config.Application) fiber.Handler {
 		groupCodeString := c.Params("code")
 		groupCode, err := uuid.Parse(groupCodeString)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid group code",
 				"error":   err.Error(),
@@ -183,7 +183,7 @@ func GetUsers(app *config.Application) fiber.Handler {
 		}
 		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"message": "group not found",
 				"error":   err.Error(),
@@ -196,7 +196,7 @@ func GetUsers(app *config.Application) fiber.Handler {
 		}
 		users, err := groupObj.QueryUsers().All(ctx)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "something went wrong",
 				"error":   err.Error(),
@@ -216,7 +216,7 @@ func GetSettledTxns(app *config.Application) fiber.Handler {
 		token := c.Locals("user").(*jwt.Token)
 		userObj, err := userOps.GetUserByJwt(token)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "user not found",
 				"error":   err.Error(),
@@ -225,7 +225,7 @@ func GetSettledTxns(app *config.Application) fiber.Handler {
 		groupOps := services.NewGroupOps(ctx, app)
 		owedTxnHistory, lentTxnHistory, err := groupOps.GetSettledTxnsOfAllGroups(userObj)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "something went wrong",
 				"error":   err.Error(),
