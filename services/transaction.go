@@ -8,6 +8,7 @@ import (
 	"settlesphere/ent/group"
 	"settlesphere/ent/transaction"
 	user2 "settlesphere/ent/user"
+	"time"
 )
 
 type TxnOps struct {
@@ -139,6 +140,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetBelongsTo(groupObj).
 			SetNote(note).
 			SetSettled(true).
+			SetSettledAt(time.Now()).
 			Save(r.ctx)
 		if err != nil {
 			return nil, err

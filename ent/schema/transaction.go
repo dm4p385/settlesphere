@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // Transaction holds the schema definition for the Transaction entity.
@@ -16,6 +17,8 @@ func (Transaction) Fields() []ent.Field {
 	return []ent.Field{
 		field.Float("amount").Positive(),
 		field.String("note").Optional(),
+		field.Time("created_at").
+			Default(time.Now),
 	}
 }
 

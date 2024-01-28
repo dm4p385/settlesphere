@@ -14,6 +14,7 @@ import (
 	"settlesphere/ent/group"
 	"settlesphere/ent/transaction"
 	user2 "settlesphere/ent/user"
+	"time"
 )
 
 type UserOps struct {
@@ -190,6 +191,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 			SetDestination(targetUser).
 			SetBelongsTo(groupObj).
 			SetSettled(true).
+			SetSettledAt(time.Now()).
 			SetNote("Settled").
 			Save(r.ctx)
 		if err != nil {
@@ -214,6 +216,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 		SetDestination(settler).
 		SetBelongsTo(groupObj).
 		SetSettled(true).
+		SetSettledAt(time.Now()).
 		SetNote("Settled").
 		Save(r.ctx)
 	if err != nil {

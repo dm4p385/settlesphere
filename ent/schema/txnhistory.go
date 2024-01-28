@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // TxnHistory holds the schema definition for the TxnHistory entity.
@@ -17,6 +18,10 @@ func (TxnHistory) Fields() []ent.Field {
 		field.Float("amount").Positive(),
 		field.String("note").Optional(),
 		field.Bool("settled").Default(false),
+		field.Time("created_at").
+			Default(time.Now),
+		field.Time("settled_at").
+			Nillable(),
 	}
 }
 
