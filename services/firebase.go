@@ -7,6 +7,7 @@ import (
 	"google.golang.org/api/option"
 	"io"
 	"mime/multipart"
+	"net/url"
 	"os"
 	"time"
 )
@@ -39,8 +40,8 @@ func UploadToFirebase(storageClient *storage.Client, file *multipart.FileHeader)
 	bucket := storageClient.Bucket(bucketName)
 	//bucket, err := storageClient.DefaultBucket()
 
-	//objectName := url2.QueryEscape(file.Filename)
-	objectName := file.Filename
+	objectName := url.QueryEscape(file.Filename)
+	//objectName := file.Filename
 	wc := bucket.Object(objectName).NewWriter(ctx)
 	defer wc.Close()
 
@@ -60,7 +61,7 @@ func UploadToFirebase(storageClient *storage.Client, file *multipart.FileHeader)
 	//}
 	//url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName)
 	//url := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/%s/o/%s", bucketName, objectName)
-	downloadUrl, err := bucket.SignedURL(file.Filename, &storage.SignedURLOptions{
+	downloadUrl, err := bucket.SignedURL(objectName, &storage.SignedURLOptions{
 		Expires: time.Now().AddDate(100, 0, 0),
 		Method:  "GET",
 	})
