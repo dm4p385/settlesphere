@@ -2,9 +2,13 @@ package services
 
 import (
 	"context"
+	"github.com/gofiber/fiber/v2/log"
 	"settlesphere/config"
 	"settlesphere/ent"
+	"settlesphere/ent/group"
+	"settlesphere/ent/transaction"
 	"settlesphere/ent/txnhistory"
+	user2 "settlesphere/ent/user"
 )
 
 type GroupOps struct {
@@ -45,6 +49,31 @@ func (r *GroupOps) GetSettledTxnsOfAllGroups(user *ent.User) ([]*ent.TxnHistory,
 		return nil, nil, err
 	}
 	return OwedTxnHistory, LentTxnHistory, nil
+}
+
+func (r *GroupOps) GetUserNetAmountOfGroup(user *ent.User, groupObj *ent.Group) (float64, error) {
+	owedTxnsAmount, err := r.app.EntClient.Transaction.Query().
+		Where(
+			transaction.HasDestinationWith(user2.ID(user.ID)),
+			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+		).
+		Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
+	if err != nil {
+		log.Error(err)
+		return 0, err
+	}
+	lentTxnsAmount, err := r.app.EntClient.Transaction.Query().
+		Where(
+			transaction.HasSourceWith(user2.ID(user.ID)),
+			transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
+		).
+		Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
+	if err != nil {
+		log.Error(err)
+		return 0, err
+	}
+	netAmount := lentTxnsAmount - owedTxnsAmount
+	return netAmount, nil
 }
 
 //func (r *GroupOps) GetAllGroupTxns(group *ent.Group) ([]ent.Transaction, error) {

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"settlesphere/ent/group"
 	"settlesphere/services"
+	"time"
 
 	"settlesphere/config"
 )
@@ -16,6 +17,7 @@ func ListGroups(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		ctx := context.Background()
 		userOps := services.NewUserOps(ctx, app)
+		groupOps := services.NewGroupOps(ctx, app)
 		token := c.Locals("user").(*jwt.Token)
 		userObj, err := userOps.GetUserByJwt(token)
 		if err != nil {
@@ -26,8 +28,12 @@ func ListGroups(app *config.Application) fiber.Handler {
 			})
 		}
 		type groupsRes struct {
-			Name string `json:"name"`
-			Code string `json:"code"`
+			Name      string    `json:"name"`
+			Code      uuid.UUID `json:"code"`
+			CreatedBy string    `json:"created_by"`
+			CreatedAt time.Time `json:"created_at"`
+			Image     string    `json:"image"`
+			NetAmount float64   `json:"net_amount"`
 		}
 
 		// TODO: fix this response
@@ -39,9 +45,25 @@ func ListGroups(app *config.Application) fiber.Handler {
 				"error":   err.Error(),
 			})
 		}
+		var resGroups []groupsRes
+		for _, groupObj := range groups {
+			netAmount, err := groupOps.GetUserNetAmountOfGroup(userObj, groupObj)
+			if err != nil {
+				netAmount = 0
+			}
+			resGroups = append(resGroups, groupsRes{
+				Name:      groupObj.Name,
+				Code:      groupObj.Code,
+				CreatedBy: groupObj.CreatedBy,
+				CreatedAt: groupObj.CreatedAt,
+				Image:     groupObj.Image,
+				NetAmount: netAmount,
+			})
+		}
+
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "fetched groups",
-			"groups":  groups,
+			"groups":  resGroups,
 		})
 	}
 }
