@@ -11,6 +11,7 @@ import (
 	"settlesphere/ent/user"
 	"settlesphere/services"
 	"strconv"
+	"time"
 )
 
 //func ListTxns(app *config.Application) fiber.Handler {
@@ -196,12 +197,14 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			})
 		}
 		type txnHistoryRes struct {
-			TxnId      int     `json:"id"`
-			Note       string  `json:"note"`
-			ReceiverId int     `json:"receiverId"`
-			PayerId    int     `json:"payerId"`
-			Amount     float64 `json:"amount"`
-			Settled    bool    `json:"settled"`
+			TxnId      int       `json:"id"`
+			Note       string    `json:"note"`
+			ReceiverId int       `json:"receiverId"`
+			PayerId    int       `json:"payerId"`
+			Amount     float64   `json:"amount"`
+			Settled    bool      `json:"settled"`
+			CreatedAt  time.Time `json:"created_at"`
+			SettledAt  time.Time `json:"settled_at"`
 		}
 		var txnHistoryArr []txnHistoryRes
 		for _, txnHistory := range txnHistoryObjArr {
