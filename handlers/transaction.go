@@ -197,17 +197,21 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			})
 		}
 		type txnHistoryRes struct {
-			TxnId      int       `json:"id"`
-			Note       string    `json:"note"`
-			ReceiverId int       `json:"receiverId"`
-			PayerId    int       `json:"payerId"`
-			Amount     float64   `json:"amount"`
-			Settled    bool      `json:"settled"`
-			CreatedAt  time.Time `json:"created_at"`
-			SettledAt  time.Time `json:"settled_at"`
+			TxnId      int        `json:"id"`
+			Note       string     `json:"note"`
+			ReceiverId int        `json:"receiverId"`
+			PayerId    int        `json:"payerId"`
+			Amount     float64    `json:"amount"`
+			Settled    bool       `json:"settled"`
+			CreatedAt  time.Time  `json:"created_at"`
+			SettledAt  *time.Time `json:"settled_at,omitempty"`
 		}
 		var txnHistoryArr []txnHistoryRes
 		for _, txnHistory := range txnHistoryObjArr {
+			//var settleTime time.Time
+			//if txnHistory.SettledAt != nil {
+			//	settleTime = *txnHistory.SettledAt
+			//}
 			temp := txnHistoryRes{
 				TxnId:      txnHistory.ID,
 				Note:       txnHistory.Note,
@@ -215,6 +219,8 @@ func TxnHistory(app *config.Application) fiber.Handler {
 				PayerId:    txnHistory.QuerySource().OnlyIDX(ctx),
 				Amount:     txnHistory.Amount,
 				Settled:    txnHistory.Settled,
+				CreatedAt:  txnHistory.CreatedAt,
+				SettledAt:  txnHistory.SettledAt,
 			}
 			txnHistoryArr = append(txnHistoryArr, temp)
 		}
