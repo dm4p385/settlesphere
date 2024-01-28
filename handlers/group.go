@@ -47,6 +47,9 @@ func ListGroups(app *config.Application) fiber.Handler {
 		}
 		var resGroups []groupsRes
 		for _, groupObj := range groups {
+			// netAmount = lent - owed
+			// negative implies you owe money
+			// positive implies you are owed money
 			netAmount, err := groupOps.GetUserNetAmountOfGroup(userObj, groupObj)
 			if err != nil {
 				netAmount = 0
