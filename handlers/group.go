@@ -31,7 +31,7 @@ func ListGroups(app *config.Application) fiber.Handler {
 		}
 
 		// TODO: fix this response
-		groups, err := userObj.QueryMemberOf().Select(group.FieldName).Select(group.FieldCode).Select(group.FieldCreatedBy).All(ctx)
+		groups, err := userObj.QueryMemberOf().Select(group.FieldName).Select(group.FieldCode).Select(group.FieldCreatedBy).Select(group.FieldImage).All(ctx)
 		if err != nil {
 			log.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
