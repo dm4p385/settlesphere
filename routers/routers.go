@@ -26,6 +26,7 @@ func SetRoutes(app *config.Application) {
 	group.Post("/", handlers.CreateGroup(app))
 	group.Get("/members/:code", handlers.GetUsers(app))
 	group.Get("/settled", handlers.GetSettledTxns(app))
+	group.Get("/stats/:code", handlers.GetGroupStats(app))
 
 	// transaction routes
 	txn := api.Group("/txn")

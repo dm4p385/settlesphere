@@ -262,3 +262,13 @@ func GetSettledTxns(app *config.Application) fiber.Handler {
 		})
 	}
 }
+
+func GetGroupStats(app *config.Application) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"total_group_spending": 36782.23,
+			"total_you_paid_for":   36782.23,
+			"your_total_share":     36782.23,
+		})
+	}
+}
