@@ -174,7 +174,14 @@ func CreateGroup(app *config.Application) fiber.Handler {
 			})
 		}
 		groupOps := services.NewGroupOps(ctx, app)
-		groupOps.AddUserToGroup(group, userObj)
+		err = groupOps.AddUserToGroup(group, userObj)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong",
+				"error":   err.Error(),
+			})
+		}
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "group created",
 			"group": fiber.Map{
