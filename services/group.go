@@ -29,13 +29,14 @@ func (r *GroupOps) AddUserToGroup(group *ent.Group, user *ent.User) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.app.EntClient.Stat.Create().
+	statObj, err := r.app.EntClient.Stat.Create().
 		SetBelongsToUser(user).
 		SetBelongsToGroup(group).
 		Save(r.ctx)
 	if err != nil {
 		return err
 	}
+	log.Debug(statObj)
 	return nil
 }
 
