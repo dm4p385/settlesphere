@@ -162,14 +162,16 @@ func AddTransaction(app *config.Application) fiber.Handler {
 					"message": "amount cannot be negative or zero",
 				})
 			}
-			txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, req.Amount, req.Note)
-			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"message": "something went wrong",
-					"error":   err.Error(),
-				})
+			if userObj.ID != lenderId {
+				txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, req.Amount, req.Note)
+				if err != nil {
+					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+						"message": "something went wrong",
+						"error":   err.Error(),
+					})
+				}
+				txnArray = append(txnArray, txn)
 			}
-			txnArray = append(txnArray, txn)
 		}
 		//receiver, err := app.EntClient.User.Query().Where(user.IDEQ(req.Receiver)).Only(ctx)
 		//if err != nil {
