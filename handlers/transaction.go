@@ -76,10 +76,10 @@ func AddTransaction(app *config.Application) fiber.Handler {
 		// Lender is the one who owes money
 		// Receiver lends the money
 		req := struct {
-			Receiver int         `json:"receiver"`
-			Lender   map[int]int `json:"lender"`
-			Amount   float64     `json:"amount"`
-			Note     string      `json:"note"`
+			Receiver int                `json:"receiver"`
+			Lender   map[string]float64 `json:"lender"`
+			Amount   float64            `json:"amount"`
+			Note     string             `json:"note"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
 			log.Error(err)
@@ -148,7 +148,8 @@ func AddTransaction(app *config.Application) fiber.Handler {
 		txnOps := services.NewTxnOps(ctx, app)
 		var txnArray []*ent.Transaction
 		// this method is bad, the transaction gets termination in between instead of being all or nothing
-		for lenderId, lenderAmount := range req.Lender {
+		for lenderIdString, lenderAmount := range req.Lender {
+			lenderId, err := strconv.Atoi(lenderIdString)
 			lender, err := app.EntClient.User.Query().Where(user.IDEQ(lenderId)).Only(ctx)
 			if err != nil {
 				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
