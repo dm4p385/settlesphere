@@ -163,7 +163,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 				})
 			}
 			if receiver.ID != lenderId {
-				txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, lenderAmount, req.Note)
+				txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, lenderAmount, req.Note, req.Amount)
 				if err != nil {
 					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 						"message": "something went wrong",
@@ -267,14 +267,15 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			})
 		}
 		type txnHistoryRes struct {
-			TxnId      int        `json:"id"`
-			Note       string     `json:"note"`
-			ReceiverId int        `json:"receiverId"`
-			PayerId    int        `json:"payerId"`
-			Amount     float64    `json:"amount"`
-			Settled    bool       `json:"settled"`
-			CreatedAt  time.Time  `json:"created_at"`
-			SettledAt  *time.Time `json:"settled_at,omitempty"`
+			TxnId       int        `json:"id"`
+			Note        string     `json:"note"`
+			ReceiverId  int        `json:"receiverId"`
+			PayerId     int        `json:"payerId"`
+			Amount      float64    `json:"amount"`
+			TotalAmount float64    `json:"total_amount"`
+			Settled     bool       `json:"settled"`
+			CreatedAt   time.Time  `json:"created_at"`
+			SettledAt   *time.Time `json:"settled_at,omitempty"`
 		}
 		var txnHistoryArr []txnHistoryRes
 		for _, txnHistory := range txnHistoryObjArr {
@@ -283,14 +284,15 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			//	settleTime = *txnHistory.SettledAt
 			//}
 			temp := txnHistoryRes{
-				TxnId:      txnHistory.ID,
-				Note:       txnHistory.Note,
-				ReceiverId: txnHistory.QueryDestination().OnlyIDX(ctx),
-				PayerId:    txnHistory.QuerySource().OnlyIDX(ctx),
-				Amount:     txnHistory.Amount,
-				Settled:    txnHistory.Settled,
-				CreatedAt:  txnHistory.CreatedAt,
-				SettledAt:  txnHistory.SettledAt,
+				TxnId:       txnHistory.ID,
+				Note:        txnHistory.Note,
+				ReceiverId:  txnHistory.QueryDestination().OnlyIDX(ctx),
+				PayerId:     txnHistory.QuerySource().OnlyIDX(ctx),
+				Amount:      txnHistory.Amount,
+				TotalAmount: txnHistory.TotalAmount,
+				Settled:     txnHistory.Settled,
+				CreatedAt:   txnHistory.CreatedAt,
+				SettledAt:   txnHistory.SettledAt,
 			}
 			txnHistoryArr = append(txnHistoryArr, temp)
 		}

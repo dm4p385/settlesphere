@@ -188,6 +188,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 		netAmount = 0 - netAmount
 		txnHistory, err := r.app.EntClient.TxnHistory.Create().
 			SetAmount(netAmount).
+			SetTotalAmount(netAmount).
 			SetSource(settler).
 			SetDestination(targetUser).
 			SetBelongsTo(groupObj).
@@ -213,6 +214,7 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 	}
 	txnHistory, err := r.app.EntClient.TxnHistory.Create().
 		SetAmount(netAmount).
+		SetTotalAmount(netAmount).
 		SetSource(targetUser).
 		SetDestination(settler).
 		SetBelongsTo(groupObj).

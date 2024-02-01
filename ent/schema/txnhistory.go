@@ -16,6 +16,7 @@ type TxnHistory struct {
 func (TxnHistory) Fields() []ent.Field {
 	return []ent.Field{
 		field.Float("amount").Positive(),
+		field.Float("total_amount").Positive(),
 		field.String("note").Optional(),
 		field.Bool("settled").Default(false),
 		field.Time("created_at").

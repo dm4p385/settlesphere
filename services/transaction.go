@@ -22,7 +22,7 @@ func NewTxnOps(ctx context.Context, app *config.Application) *TxnOps {
 	}
 }
 
-func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount float64, note string) (*ent.Transaction, error) {
+func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount float64, note string, totalAmount float64) (*ent.Transaction, error) {
 	existingLentTxn := 0.0
 	existingOwedTxn := 0.0
 	var err error
@@ -100,6 +100,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 		}
 		_, err = r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
+			SetTotalAmount(totalAmount).
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
@@ -122,6 +123,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 		}
 		_, err = r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
+			SetTotalAmount(totalAmount).
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
@@ -134,6 +136,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 	} else if netAmount == 0 {
 		_, err = r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
+			SetTotalAmount(totalAmount).
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
