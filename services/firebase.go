@@ -39,8 +39,9 @@ func UploadToFirebase(storageClient *storage.Client, file *multipart.FileHeader)
 	bucketName := "settlesphere-56478.appspot.com"
 	bucket := storageClient.Bucket(bucketName)
 	//bucket, err := storageClient.DefaultBucket()
-
-	objectName := url.QueryEscape(file.Filename)
+	currentTime := time.Now()
+	timestamp := currentTime.Format("20060102_150405")
+	objectName := url.QueryEscape(file.Filename) + timestamp
 	//objectName := file.Filename
 	wc := bucket.Object(objectName).NewWriter(ctx)
 	defer wc.Close()
