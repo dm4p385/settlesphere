@@ -224,9 +224,14 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			}
 			txnHistoryArr = append(txnHistoryArr, temp)
 		}
+		netAmount, err := groupOps.GetUserNetAmountOfGroup(userObj, groupObj)
+		if err != nil {
+			netAmount = 0
+		}
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message":     "transaction history",
 			"txn_history": txnHistoryArr,
+			"netAmount":   netAmount,
 		})
 	}
 }
