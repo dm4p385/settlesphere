@@ -14,8 +14,8 @@ type Stat struct {
 // Fields of the Stat.
 func (Stat) Fields() []ent.Field {
 	return []ent.Field{
-		field.Float("total_paid").Positive().Default(0),
-		field.Float("total_share").Positive().Default(0),
+		field.Float("total_paid").Default(0),
+		field.Float("total_share").Default(0),
 	}
 }
 
