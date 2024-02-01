@@ -73,7 +73,7 @@ func Login(app *config.Application) fiber.Handler {
 			"user":   user.Username,
 			"email":  user.Email,
 			"pubkey": user.PubKey,
-			"exp":    time.Now().Add(time.Hour * 72).Unix(),
+			"exp":    time.Now().Add(time.Hour * 24 * 365).Unix(),
 		}
 		// Create token
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
