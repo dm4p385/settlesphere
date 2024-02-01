@@ -73,9 +73,11 @@ func GroupUserTxns(app *config.Application) fiber.Handler {
 
 func AddTransaction(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// Lender is the one who owes money
+		// Receiver lends the money
 		req := struct {
-			Lender   int         `json:"lender"`
-			Receiver map[int]int `json:"receiver"`
+			Receiver int         `json:"receiver"`
+			Lender   map[int]int `json:"lender"`
 			Amount   float64     `json:"amount"`
 			Note     string      `json:"note"`
 		}{}
@@ -119,10 +121,10 @@ func AddTransaction(app *config.Application) fiber.Handler {
 				"message": "user does not belong to this group",
 			})
 		}
-		lender, err := app.EntClient.User.Query().Where(user.IDEQ(req.Lender)).Only(ctx)
+		receiver, err := app.EntClient.User.Query().Where(user.IDEQ(req.Receiver)).Only(ctx)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "lender does not exist",
+				"message": "receiver does not exist",
 				"error":   err.Error(),
 			})
 		}
@@ -146,15 +148,15 @@ func AddTransaction(app *config.Application) fiber.Handler {
 		txnOps := services.NewTxnOps(ctx, app)
 		var txnArray []*ent.Transaction
 		// this method is bad, the transaction gets termination in between instead of being all or nothing
-		for receiverId, receiverAmount := range req.Receiver {
-			receiver, err := app.EntClient.User.Query().Where(user.IDEQ(receiverId)).Only(ctx)
+		for lenderId, lenderAmount := range req.Lender {
+			lender, err := app.EntClient.User.Query().Where(user.IDEQ(lenderId)).Only(ctx)
 			if err != nil {
 				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-					"message": "receiver does not exist",
+					"message": "lender does not exist",
 					"error":   err.Error(),
 				})
 			}
-			if receiverAmount <= 0 {
+			if lenderAmount <= 0 {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 					"message": "amount cannot be negative or zero",
 				})
