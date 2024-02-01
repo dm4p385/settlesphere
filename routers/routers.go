@@ -27,6 +27,7 @@ func SetRoutes(app *config.Application) {
 	group.Get("/members/:code", handlers.GetUsers(app))
 	group.Get("/settled", handlers.GetSettledTxns(app))
 	group.Get("/stats/:code", handlers.GetGroupStats(app))
+	group.Get("/stats/user", handlers.GetLifetimeSpending(app))
 
 	// transaction routes
 	txn := api.Group("/txn")

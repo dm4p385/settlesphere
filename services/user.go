@@ -266,3 +266,11 @@ func (r *UserOps) UpdateUserShareStat(userShare float64, userObj *ent.User, grou
 	_, err = stat.Update().AddTotalShare(userShare).Save(r.ctx)
 	return nil
 }
+
+func (r *UserOps) GetUserLifetimeSpending(userObj *ent.User) (float64, error) {
+	spending, err := r.app.EntClient.Stat.Query().Where(stat.HasBelongsToUserWith(user2.IDEQ(userObj.ID))).Aggregate(ent.Sum(stat.FieldTotalShare)).Float64(r.ctx)
+	if err != nil {
+		return 0, err
+	}
+	return spending, nil
+}

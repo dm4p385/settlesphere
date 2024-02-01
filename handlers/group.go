@@ -330,3 +330,32 @@ func GetGroupStats(app *config.Application) fiber.Handler {
 		})
 	}
 }
+
+func GetLifetimeSpending(app *config.Application) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := context.Background()
+		userOps := services.NewUserOps(ctx, app)
+		token := c.Locals("user").(*jwt.Token)
+		userObj, err := userOps.GetUserByJwt(token)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "user not found",
+				"error":   err.Error(),
+			})
+		}
+		lifetimeSpending, err := userOps.GetUserLifetimeSpending(userObj)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong calculating lifetimespending",
+				"error":   err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message":           "lifetime spending of user",
+			"lifetime_spending": lifetimeSpending,
+		})
+	}
+}
