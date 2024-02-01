@@ -22,9 +22,9 @@ func NewTxnOps(ctx context.Context, app *config.Application) *TxnOps {
 	}
 }
 
-func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount int, note string) (*ent.Transaction, error) {
-	existingLentTxn := 0
-	existingOwedTxn := 0
+func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount float64, note string, totalAmount float64) (*ent.Transaction, error) {
+	existingLentTxn := 0.0
+	existingOwedTxn := 0.0
 	var err error
 	if temp := r.app.EntClient.Transaction.Query().
 		Where(
@@ -41,7 +41,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 					transaction.HasDestinationWith(user2.IDEQ(destUser.ID)),
 				),
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
-			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
+			).Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
 		if err != nil {
 			log.Error(err)
 			return nil, err
@@ -62,7 +62,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 					transaction.HasSourceWith(user2.IDEQ(destUser.ID)),
 				),
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
-			).Aggregate(ent.Sum(transaction.FieldAmount)).Int(r.ctx)
+			).Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -100,6 +100,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 		}
 		_, err = r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
+			SetTotalAmount(totalAmount).
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
@@ -122,6 +123,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 		}
 		_, err = r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
+			SetTotalAmount(totalAmount).
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
@@ -134,11 +136,13 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 	} else if netAmount == 0 {
 		_, err = r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
+			SetTotalAmount(totalAmount).
 			SetSource(destUser).
 			SetDestination(sourceUser).
 			SetBelongsTo(groupObj).
 			SetNote(note).
-			SetSettled(true).
+			//SetSettled(true).
+			//SetSettledAt(time.Now()).
 			Save(r.ctx)
 		if err != nil {
 			return nil, err

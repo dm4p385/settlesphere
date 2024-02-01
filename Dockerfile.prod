@@ -1,0 +1,20 @@
+FROM golang:1.21.1 as base
+
+FROM base as built
+
+WORKDIR /go/app/api
+COPY . .
+
+ENV CGO_ENABLED=0
+
+RUN go mod download
+RUN go mod verify
+RUN go generate ./ent
+RUN go build -o /tmp/main ./*.go
+
+FROM busybox
+COPY --from=built /tmp/main /usr/bin/main
+COPY --from=built /go/app/api/config/firebase-service.json /usr/bin/config/firebase-service.json
+COPY --from=built /go/app/api/.env /usr/bin/.env
+
+CMD ["./usr/bin/main"]

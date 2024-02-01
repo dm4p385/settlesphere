@@ -7,7 +7,7 @@ import (
 )
 
 func SetRoutes(app *config.Application) {
-	api := app.FiberApp.Group("/api/v1/")
+	api := app.FiberApp.Group("/settlesphere/api/v1/")
 	jwtMiddleware := jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(app.Secret)},
 	})
@@ -26,6 +26,8 @@ func SetRoutes(app *config.Application) {
 	group.Post("/", handlers.CreateGroup(app))
 	group.Get("/members/:code", handlers.GetUsers(app))
 	group.Get("/settled", handlers.GetSettledTxns(app))
+	group.Get("/stats/:code", handlers.GetGroupStats(app))
+	group.Get("/user/stats", handlers.GetLifetimeSpending(app))
 
 	// transaction routes
 	txn := api.Group("/txn")

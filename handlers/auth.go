@@ -7,15 +7,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"settlesphere/config"
 	user2 "settlesphere/ent/user"
-	"strings"
+	"settlesphere/services"
 	"time"
 )
 
 func Login(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		req := struct {
-			Email  string `json:"email"`
-			PubKey string `json:"pubKey"`
+			Email     string `json:"name"`
+			PubKey    string `json:"pubKey"`
+			Signature string `json:"signature"`
 		}{}
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -24,13 +25,26 @@ func Login(app *config.Application) fiber.Handler {
 			})
 		}
 		ctx := context.Background()
-		user, err := app.EntClient.User.Query().Where(user2.EmailEQ(req.Email)).Only(ctx)
+		userOps := services.NewUserOps(ctx, app)
+		log.Debug(req.Email)
+		log.Debug(req.PubKey)
+		log.Debug(req.Signature)
+		verified := userOps.VerifyUser("settlesphere", req.Signature, req.PubKey)
+		if !verified {
+			log.Errorf("could not verify user signature")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "could not verify user signature",
+			})
+		}
+		user, err := app.EntClient.User.Query().Where(user2.PubKey(req.PubKey)).Only(ctx)
 		if err != nil {
-			username := strings.Split(req.Email, "@")[0]
+			//username := strings.Split(req.Email, "@")[0]
+			profilePicture := userOps.GetProfilePictureUrl()
 			user, err = app.EntClient.User.Create().
-				SetUsername(username).
+				SetUsername(req.Email).
 				SetEmail(req.Email).
 				SetPubKey(req.PubKey).
+				SetImage(profilePicture).
 				Save(ctx)
 			if err != nil {
 				log.Errorf("something went wrong while creating a user: %v", err)
@@ -40,6 +54,15 @@ func Login(app *config.Application) fiber.Handler {
 				})
 			}
 		}
+		_, err = user.Update().SetUsername(req.Email).SetEmail(req.Email).Save(ctx)
+		if err != nil {
+			log.Errorf("something went wrong while creating a user: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong while upadting user name",
+				"error":   err,
+			})
+		}
+
 		if user.PubKey != req.PubKey {
 			return c.Status(401).JSON(fiber.Map{
 				"message": "wrong pubKey for this user",
@@ -47,9 +70,10 @@ func Login(app *config.Application) fiber.Handler {
 		}
 		// claims
 		claims := jwt.MapClaims{
-			"user":  user.Username,
-			"email": user.Email,
-			"exp":   time.Now().Add(time.Hour * 72).Unix(),
+			"user":   user.Username,
+			"email":  user.Email,
+			"pubkey": user.PubKey,
+			"exp":    time.Now().Add(time.Hour * 24 * 365).Unix(),
 		}
 		// Create token
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -64,6 +88,7 @@ func Login(app *config.Application) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "logged in successfully",
 			"token":   t,
+			"user":    user,
 		})
 	}
 }

@@ -22,6 +22,7 @@ func (Group) Fields() []ent.Field {
 		field.String("created_by"),
 		field.Time("created_at").
 			Default(time.Now),
+		field.String("image").Default(""),
 	}
 }
 
@@ -31,5 +32,7 @@ func (Group) Edges() []ent.Edge {
 		edge.To("users", User.Type),
 		edge.To("transactions", Transaction.Type),
 		edge.To("txn_history", TxnHistory.Type),
+		edge.From("stat", Stat.Type).
+			Ref("belongs_to_group"),
 	}
 }

@@ -144,3 +144,7 @@ dev/
 ent/*
 !ent/schema
 !ent/generate.go
+./env
+.env
+./tmp/
+config/firebase-service.json
