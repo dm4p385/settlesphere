@@ -172,19 +172,20 @@ func AddTransaction(app *config.Application) fiber.Handler {
 				}
 				txnArray = append(txnArray, txn)
 			}
+
+			err = userOps.UpdateUserShareStat(req.Lender[strconv.Itoa(lenderId)], lender, groupObj)
+			if err != nil {
+				if err != nil {
+					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+						"message": "something went wrong while updating user stats",
+						"error":   err.Error(),
+					})
+				}
+			}
+
 		}
 
 		err = userOps.UpdateUserPaidByStat(req.Amount, receiver, groupObj)
-		if err != nil {
-			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"message": "something went wrong while updating user stats",
-					"error":   err.Error(),
-				})
-			}
-		}
-
-		err = userOps.UpdateUserShareStat(req.Lender[strconv.Itoa(receiver.ID)], receiver, groupObj)
 		if err != nil {
 			if err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
