@@ -163,7 +163,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 				})
 			}
 			if userObj.ID != lenderId {
-				txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, req.Amount, req.Note)
+				txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, lenderAmount, req.Note)
 				if err != nil {
 					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 						"message": "something went wrong",
