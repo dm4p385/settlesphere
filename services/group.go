@@ -6,6 +6,7 @@ import (
 	"settlesphere/config"
 	"settlesphere/ent"
 	"settlesphere/ent/group"
+	"settlesphere/ent/stat"
 	"settlesphere/ent/transaction"
 	"settlesphere/ent/txnhistory"
 	user2 "settlesphere/ent/user"
@@ -25,6 +26,13 @@ func NewGroupOps(ctx context.Context, app *config.Application) *GroupOps {
 
 func (r *GroupOps) AddUserToGroup(group *ent.Group, user *ent.User) error {
 	_, err := group.Update().AddUsers(user).Save(r.ctx)
+	if err != nil {
+		return err
+	}
+	_, err = r.app.EntClient.Stat.Create().
+		SetBelongsToUser(user).
+		SetBelongsToGroup(group).
+		Save(r.ctx)
 	if err != nil {
 		return err
 	}
@@ -100,3 +108,11 @@ func (r *GroupOps) GetUserNetAmountOfGroup(user *ent.User, groupObj *ent.Group) 
 //	txns, err := group.QueryTransactions().Select().All(r.ctx)
 //	if err:=
 //}
+
+func (r *GroupOps) GetGroupTotalPaid(groupObj *ent.Group) (float64, error) {
+	groupTotalPaid, err := r.app.EntClient.Stat.Query().Where(stat.HasBelongsToGroupWith(group.IDEQ(groupObj.ID))).Aggregate(ent.Sum(stat.FieldTotalShare)).Float64(r.ctx)
+	if err != nil {
+		return 0, err
+	}
+	return groupTotalPaid, nil
+}

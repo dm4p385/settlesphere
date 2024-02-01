@@ -7,6 +7,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"settlesphere/ent/group"
+	"settlesphere/ent/stat"
+	user2 "settlesphere/ent/user"
 	"settlesphere/services"
 	"time"
 
@@ -265,10 +267,59 @@ func GetSettledTxns(app *config.Application) fiber.Handler {
 
 func GetGroupStats(app *config.Application) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		ctx := context.Background()
+		userOps := services.NewUserOps(ctx, app)
+		token := c.Locals("user").(*jwt.Token)
+		userObj, err := userOps.GetUserByJwt(token)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "user not found",
+				"error":   err.Error(),
+			})
+		}
+		groupCodeString := c.Params("code")
+		groupCode, err := uuid.Parse(groupCodeString)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "invalid group code",
+				"error":   err.Error(),
+			})
+		}
+		groupObj, err := app.EntClient.Group.Query().Where(group.CodeEQ(groupCode)).Only(ctx)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "group not found",
+				"error":   err.Error(),
+			})
+		}
+		if isMember, _ := userObj.QueryMemberOf().Where(group.IDEQ(groupObj.ID)).Exist(ctx); !isMember {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"message": "user does not belong to this group",
+			})
+		}
+		stat, err := app.EntClient.Stat.Query().Where(
+			stat.HasBelongsToGroupWith(group.IDEQ(groupObj.ID)),
+			stat.HasBelongsToUserWith(user2.IDEQ(userObj.ID)),
+		).Only(ctx)
+		if err != nil {
+			return err
+		}
+
+		groupOps := services.NewGroupOps(ctx, app)
+		groupTotalPaid, err := groupOps.GetGroupTotalPaid(groupObj)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong while fetching group total",
+				"error":   err,
+			})
+		}
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"total_group_spending": 36782.23,
-			"total_you_paid_for":   36782.23,
-			"your_total_share":     36782.23,
+			"total_group_spending": groupTotalPaid,
+			"total_you_paid_for":   stat.TotalPaid,
+			"your_total_share":     stat.TotalShare,
 		})
 	}
 }

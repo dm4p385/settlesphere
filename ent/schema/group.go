@@ -32,5 +32,7 @@ func (Group) Edges() []ent.Edge {
 		edge.To("users", User.Type),
 		edge.To("transactions", Transaction.Type),
 		edge.To("txn_history", TxnHistory.Type),
+		edge.From("stat", Stat.Type).
+			Ref("belongs_to_group"),
 	}
 }

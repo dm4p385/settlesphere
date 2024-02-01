@@ -12,6 +12,7 @@ import (
 	"settlesphere/config"
 	"settlesphere/ent"
 	"settlesphere/ent/group"
+	"settlesphere/ent/stat"
 	"settlesphere/ent/transaction"
 	user2 "settlesphere/ent/user"
 	"time"
@@ -236,4 +237,30 @@ func (r *UserOps) GetProfilePictureUrl() string {
 	randomIndex := rand.Intn(len(defaultProfilePictures))
 	randomElement := defaultProfilePictures[randomIndex]
 	return randomElement
+}
+
+func (r *UserOps) UpdateUserPaidByStat(totalAmount float64, userObj *ent.User, groupObj *ent.Group) error {
+	stat, err := r.app.EntClient.Stat.Query().Where(
+		stat.HasBelongsToGroupWith(group.IDEQ(groupObj.ID)),
+		stat.HasBelongsToUserWith(user2.IDEQ(userObj.ID)),
+	).Only(r.ctx)
+	if err != nil {
+		return err
+	}
+	log.Debug(stat)
+	_, err = stat.Update().AddTotalPaid(totalAmount).Save(r.ctx)
+	return nil
+}
+
+func (r *UserOps) UpdateUserShareStat(userShare float64, userObj *ent.User, groupObj *ent.Group) error {
+	stat, err := r.app.EntClient.Stat.Query().Where(
+		stat.HasBelongsToGroupWith(group.IDEQ(groupObj.ID)),
+		stat.HasBelongsToUserWith(user2.IDEQ(userObj.ID)),
+	).Only(r.ctx)
+	if err != nil {
+		return err
+	}
+	log.Debug(stat)
+	_, err = stat.Update().AddTotalShare(userShare).Save(r.ctx)
+	return nil
 }

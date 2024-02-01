@@ -32,5 +32,7 @@ func (User) Edges() []ent.Edge {
 			Ref("destination"),
 		edge.From("owed_history", TxnHistory.Type).
 			Ref("destination"),
+		edge.From("stat", Stat.Type).
+			Ref("belongs_to_user"),
 	}
 }
