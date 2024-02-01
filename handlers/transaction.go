@@ -162,7 +162,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 					"message": "amount cannot be negative or zero",
 				})
 			}
-			if userObj.ID != lenderId {
+			if receiver.ID != lenderId {
 				txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, lenderAmount, req.Note)
 				if err != nil {
 					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
