@@ -38,5 +38,8 @@ func (TxnHistory) Edges() []ent.Edge {
 			Unique(),
 		edge.To("destination", User.Type).
 			Unique(),
+		edge.From("txn_group", TxnHistoryGroup.Type).
+			Ref("txn_history").
+			Unique(),
 	}
 }
