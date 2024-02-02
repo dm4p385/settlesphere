@@ -281,7 +281,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			CreatedAt   time.Time  `json:"created_at"`
 			SettledAt   *time.Time `json:"settled_at,omitempty"`
 		}
-		var txnHistoryArr map[int][]txnHistoryRes
+		txnHistoryArr := make(map[int][]txnHistoryRes)
 		for _, txnHistory := range txnHistoryObjArr {
 			//var settleTime time.Time
 			//if txnHistory.SettledAt != nil {
