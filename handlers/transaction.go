@@ -147,7 +147,8 @@ func AddTransaction(app *config.Application) fiber.Handler {
 
 		txnOps := services.NewTxnOps(ctx, app)
 		var txnArray []*ent.Transaction
-		// this method is bad, the transaction gets termination in between instead of being all or nothing
+		var txnHistoryArray []int
+		// this method is bad, the transaction gets terminated in between instead of being all or nothing
 		for lenderIdString, lenderAmount := range req.Lender {
 			lenderId, err := strconv.Atoi(lenderIdString)
 			lender, err := app.EntClient.User.Query().Where(user.IDEQ(lenderId)).Only(ctx)
@@ -163,7 +164,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 				})
 			}
 			if receiver.ID != lenderId {
-				txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, lenderAmount, req.Note, req.Amount)
+				txn, txnHistory, err := txnOps.GenerateTransaction(groupObj, lender, receiver, lenderAmount, req.Note, req.Amount)
 				if err != nil {
 					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 						"message": "something went wrong",
@@ -171,28 +172,36 @@ func AddTransaction(app *config.Application) fiber.Handler {
 					})
 				}
 				txnArray = append(txnArray, txn)
+				txnHistoryArray = append(txnHistoryArray, txnHistory.ID)
 			}
 
 			err = userOps.UpdateUserShareStat(req.Lender[strconv.Itoa(lenderId)], lender, groupObj)
 			if err != nil {
-				if err != nil {
-					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-						"message": "something went wrong while updating user stats",
-						"error":   err.Error(),
-					})
-				}
+				log.Error(err)
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"message": "something went wrong while updating user stats",
+					"error":   err.Error(),
+				})
 			}
 
 		}
 
 		err = userOps.UpdateUserPaidByStat(req.Amount, receiver, groupObj)
 		if err != nil {
-			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"message": "something went wrong while updating user stats",
-					"error":   err.Error(),
-				})
-			}
+			log.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong while updating user stats",
+				"error":   err.Error(),
+			})
+		}
+
+		err = txnOps.GroupTxnHistories(txnHistoryArray)
+		if err != nil {
+			log.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "something went wrong while generating txn history group",
+				"error":   err.Error(),
+			})
 		}
 
 		//receiver, err := app.EntClient.User.Query().Where(user.IDEQ(req.Receiver)).Only(ctx)
@@ -209,12 +218,7 @@ func AddTransaction(app *config.Application) fiber.Handler {
 		//}
 		//txnOps := services.NewTxnOps(ctx, app)
 		//txn, err := txnOps.GenerateTransaction(groupObj, lender, receiver, req.Amount, req.Note)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "something went wrong",
-				"error":   err.Error(),
-			})
-		}
+
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "transaction created successfully",
 			"txn":     txnArray,
@@ -277,7 +281,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 			CreatedAt   time.Time  `json:"created_at"`
 			SettledAt   *time.Time `json:"settled_at,omitempty"`
 		}
-		var txnHistoryArr []txnHistoryRes
+		var txnHistoryArr map[int][]txnHistoryRes
 		for _, txnHistory := range txnHistoryObjArr {
 			//var settleTime time.Time
 			//if txnHistory.SettledAt != nil {
@@ -294,7 +298,7 @@ func TxnHistory(app *config.Application) fiber.Handler {
 				CreatedAt:   txnHistory.CreatedAt,
 				SettledAt:   txnHistory.SettledAt,
 			}
-			txnHistoryArr = append(txnHistoryArr, temp)
+			txnHistoryArr[txnHistory.QueryTxnGroup().OnlyIDX(ctx)] = append(txnHistoryArr[txnHistory.QueryTxnGroup().OnlyIDX(ctx)], temp)
 		}
 		netAmount, err := groupOps.GetUserNetAmountOfGroup(userObj, groupObj)
 		if err != nil {

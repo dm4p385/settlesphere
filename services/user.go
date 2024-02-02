@@ -199,6 +199,12 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 		if err != nil {
 			return nil, nil, err
 		}
+
+		_, err = r.app.EntClient.TxnHistoryGroup.Create().AddTxnHistory(txnHistory).Save(r.ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		usrInfoTxn := userInfoTxn{
 			SourceUserId:      settler.ID,
 			SourcePubKey:      settler.PubKey,
@@ -225,6 +231,12 @@ func (r *UserOps) SettleTxn(settler *ent.User, targetUser *ent.User, groupObj *e
 	if err != nil {
 		return nil, nil, err
 	}
+
+	_, err = r.app.EntClient.TxnHistoryGroup.Create().AddTxnHistory(txnHistory).Save(r.ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	usrInfoTxn := userInfoTxn{
 		SourceUserId:      targetUser.ID,
 		SourcePubKey:      targetUser.PubKey,

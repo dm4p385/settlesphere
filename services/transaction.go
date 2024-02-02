@@ -22,7 +22,7 @@ func NewTxnOps(ctx context.Context, app *config.Application) *TxnOps {
 	}
 }
 
-func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount float64, note string, totalAmount float64) (*ent.Transaction, error) {
+func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, destUser *ent.User, amount float64, note string, totalAmount float64) (*ent.Transaction, *ent.TxnHistory, error) {
 	existingLentTxn := 0.0
 	existingOwedTxn := 0.0
 	var err error
@@ -44,7 +44,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			).Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
 		if err != nil {
 			log.Error(err)
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	if temp := r.app.EntClient.Transaction.Query().
@@ -64,7 +64,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 			).Aggregate(ent.Sum(transaction.FieldAmount)).Float64(r.ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	_, err =
@@ -83,7 +83,7 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 				transaction.HasBelongsToWith(group.IDEQ(groupObj.ID)),
 			).Exec(r.ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	netAmount := existingLentTxn - existingOwedTxn + amount
 	log.Debug(netAmount, existingLentTxn, existingOwedTxn, amount)
@@ -96,9 +96,9 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		_, err = r.app.EntClient.TxnHistory.Create().
+		txnHistory, err := r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
 			SetTotalAmount(totalAmount).
 			SetSource(destUser).
@@ -107,9 +107,9 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return txn, nil
+		return txn, txnHistory, nil
 	} else if netAmount < 0 {
 		txn, err := r.app.EntClient.Transaction.Create().
 			SetAmount(0 - netAmount).
@@ -119,9 +119,9 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		_, err = r.app.EntClient.TxnHistory.Create().
+		txnHistory, err := r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
 			SetTotalAmount(totalAmount).
 			SetSource(destUser).
@@ -130,11 +130,11 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			SetNote(note).
 			Save(r.ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return txn, nil
+		return txn, txnHistory, nil
 	} else if netAmount == 0 {
-		_, err = r.app.EntClient.TxnHistory.Create().
+		txnHistory, err := r.app.EntClient.TxnHistory.Create().
 			SetAmount(amount).
 			SetTotalAmount(totalAmount).
 			SetSource(destUser).
@@ -145,9 +145,17 @@ func (r *TxnOps) GenerateTransaction(groupObj *ent.Group, sourceUser *ent.User, 
 			//SetSettledAt(time.Now()).
 			Save(r.ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return nil, nil
+		return nil, txnHistory, nil
 	}
-	return nil, nil
+	return nil, nil, nil
+}
+
+func (r *TxnOps) GroupTxnHistories(txnHistoryArray []int) error {
+	_, err := r.app.EntClient.TxnHistoryGroup.Create().AddTxnHistoryIDs(txnHistoryArray...).Save(r.ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
